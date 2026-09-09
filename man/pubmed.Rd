@@ -40,7 +40,8 @@ returns a \code{medrev} object holding a tidy record table.
 }
 \details{
 Supply either \code{query} (a topic, question, or Europe PMC field expression) or
-\code{ids} (PubMed IDs / DOIs), not both.
+\code{ids} (PubMed IDs / DOIs), not both. Use \code{\link[=add]{add()}} to append a second search
+to an existing review.
 }
 \examples{
 \dontrun{

@@ -7,7 +7,8 @@
 #' returns a `medrev` object holding a tidy record table.
 #'
 #' Supply either `query` (a topic, question, or Europe PMC field expression) or
-#' `ids` (PubMed IDs / DOIs), not both.
+#' `ids` (PubMed IDs / DOIs), not both. Use [add()] to append a second search
+#' to an existing review.
 #'
 #' @param query A search string. Plain text works; Europe PMC syntax is also
 #'   accepted, e.g. `"(diabetic retinopathy) AND (screening) AND SRC:MED"`.
@@ -34,11 +35,22 @@
 pubmed <- function(query = NULL, ids = NULL, n = 100L, years = NULL,
                    sort = c("relevance", "date")) {
   sort <- match.arg(sort)
+  res <- mr_run_search(query, ids, n, years, sort)
+  x <- new_medrev(res$df)
+  x <- mr_log_search(x, res$label, res$source, res$hits, nrow(res$df))
+  x <- mr_stage(x, "identified", res$detail)
+  if (length(res$unresolved)) attr(x, "unresolved") <- res$unresolved
+  x
+}
+
+# Run one search (query path or id path). Returns:
+#   df, label (short query text), detail (stage text), source, hits, unresolved
+mr_run_search <- function(query, ids, n, years, sort) {
   n <- mr_check_count(n, "n")
   if (is.null(query) && is.null(ids)) mr_stop("Supply either {.arg query} or {.arg ids}.")
   if (!is.null(query) && !is.null(ids)) mr_stop("Supply {.arg query} or {.arg ids}, not both.")
 
-  if (!is.null(ids)) return(mr_from_ids(ids, n = n))
+  if (!is.null(ids)) return(mr_search_ids(ids, n))
 
   mr_check_string(query, "query")
   full <- query
@@ -48,7 +60,7 @@ pubmed <- function(query = NULL, ids = NULL, n = 100L, years = NULL,
     hi <- if (length(yr) >= 2L) yr[[2]] else as.integer(format(Sys.Date(), "%Y"))
     full <- sprintf("(%s) AND (PUB_YEAR:[%d TO %d])", query, lo, hi)
   }
-  sort_clause <- if (sort == "date") "P_PDATE_D desc" else ""
+  sort_clause <- if (identical(sort, "date")) "P_PDATE_D desc" else ""
 
   cli::cli_progress_step("Searching Europe PMC")
   df <- mr_epmc_search(full, n = n, sort = sort_clause)
@@ -56,13 +68,11 @@ pubmed <- function(query = NULL, ids = NULL, n = 100L, years = NULL,
   cli::cli_progress_done()
   cli::cli_alert_info("Retrieved {nrow(df)} of {hits %||% NA} matching record{?s}.")
 
-  x <- new_medrev(df)
-  x <- mr_log_search(x, query, "europepmc", hits %||% NA_integer_, nrow(df))
-  x <- mr_stage(x, "identified", sprintf("Europe PMC: %s", query))
-  x
+  list(df = df, label = query, detail = sprintf("Europe PMC: %s", query),
+       source = "europepmc", hits = hits %||% NA_integer_, unresolved = character())
 }
 
-mr_from_ids <- function(ids, n = 100L) {
+mr_search_ids <- function(ids, n) {
   ids <- mr_as_ids(ids)
   if (!length(ids)) mr_stop("No identifiers supplied.")
   is_doi <- grepl("^10\\.", ids)
@@ -82,10 +92,7 @@ mr_from_ids <- function(ids, n = 100L) {
   missing <- ids[!(ids %in% found | tolower(ids) %in% found)]
   if (length(missing)) cli::cli_alert_warning("{length(missing)} identifier{?s} not found in Europe PMC.")
 
-  x <- new_medrev(df)
-  x <- mr_log_search(x, sprintf("%d supplied ids", length(ids)), "europepmc",
-                     nrow(df), nrow(df))
-  x <- mr_stage(x, "identified", sprintf("id lookup: %d supplied, %d resolved", length(ids), nrow(df)))
-  attr(x, "unresolved") <- missing
-  x
+  list(df = df, label = sprintf("%d supplied ids", length(ids)),
+       detail = sprintf("id lookup: %d supplied, %d resolved", length(ids), nrow(df)),
+       source = "europepmc", hits = nrow(df), unresolved = missing)
 }

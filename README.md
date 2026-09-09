@@ -135,13 +135,12 @@ cat(bibliography(r, which = "included")[1:3], sep = "\n\n")
 
 ``` r
 r2 <- pubmed(ids = c("10.1038/s41586-020-2649-2", "10.1371/journal.pmed.1000097"))
-as.data.frame(r2)[, c("pmid", "year", "title")]
-#>       pmid year
-#> 1 32939066 2020
-#> 2 19621072 2009
-#>                                                                                       title
-#> 1                                                             Array programming with NumPy.
-#> 2 Preferred reporting items for systematic reviews and meta-analyses: the PRISMA statement.
+d2 <- as.data.frame(r2)
+d2$title <- substr(d2$title, 1, 55)
+d2[, c("pmid", "year", "title")]
+#>       pmid year                                                   title
+#> 1 32939066 2020                           Array programming with NumPy.
+#> 2 19621072 2009 Preferred reporting items for systematic reviews and me
 ```
 
 ## Hand-screening in a spreadsheet
