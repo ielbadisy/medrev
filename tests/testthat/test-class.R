@@ -8,8 +8,9 @@ test_that("new_medrev builds the schema and a basetable record slot", {
 
 test_that("print and summary run without error", {
   r <- fake_review()
-  expect_no_error(print(r))
-  expect_invisible(summary(r))
+  expect_output(print(r), "medrev review")
+  expect_output(print(r), "records")
+  expect_output(summary(r), "medrev review")
 })
 
 test_that("mr_which_rows respects screening state", {

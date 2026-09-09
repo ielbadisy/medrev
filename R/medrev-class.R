@@ -83,23 +83,27 @@ mr_which_rows <- function(df, which = c("all", "included", "oa")) {
 #' @export
 print.medrev <- function(x, ...) {
   df <- mr_df(x)
-  cli::cli_h1("medrev review")
+  cat("<medrev review>\n")
   if (nrow(x$searches)) {
-    q <- x$searches$query
-    cli::cli_text("{.strong Searches:} {length(q)}  ({paste(utils::head(unique(q), 2), collapse = '; ')}{if (length(unique(q)) > 2) ', ...' else ''})")
+    q <- unique(x$searches$query)
+    cat(sprintf("  searches    : %d  (%s%s)\n", nrow(x$searches),
+                paste(utils::head(q, 2), collapse = "; "),
+                if (length(q) > 2) ", ..." else ""))
   }
-  cli::cli_text("{.strong Records:} {nrow(df)}")
+  cat(sprintf("  records     : %d\n", nrow(df)))
   if (nrow(df)) {
     n_oa <- sum(df$oa_status %in% "oa" | df$is_oa %in% TRUE, na.rm = TRUE)
     n_pdf <- sum(!is.na(df$pdf_url) & nzchar(df$pdf_url))
-    cli::cli_text("{.strong Open access:} {n_oa}  |  {.strong PDF link resolved:} {n_pdf}")
+    cat(sprintf("  open access : %d   pdf link resolved: %d\n", n_oa, n_pdf))
     if (any(!is.na(df$decision))) {
-      d <- factor(df$decision, levels = c("include", "exclude", "maybe"))
-      cli::cli_text("{.strong Screened:} include {sum(d == 'include', na.rm = TRUE)}  exclude {sum(d == 'exclude', na.rm = TRUE)}  maybe {sum(d == 'maybe', na.rm = TRUE)}  undecided {sum(is.na(df$decision))}")
+      cat(sprintf("  screened    : include %d / exclude %d / maybe %d / undecided %d\n",
+                  sum(df$decision %in% "include"), sum(df$decision %in% "exclude"),
+                  sum(df$decision %in% "maybe"), sum(is.na(df$decision))))
     }
   }
   if (nrow(x$stages)) {
-    cli::cli_text("{.strong Stages:} {paste(sprintf('%s (%d)', x$stages$stage, x$stages$n), collapse = ' -> ')}")
+    cat("  stages      :",
+        paste(sprintf("%s(%d)", x$stages$stage, x$stages$n), collapse = " -> "), "\n")
   }
   invisible(x)
 }
@@ -109,7 +113,7 @@ summary.medrev <- function(object, ...) {
   out <- as.data.frame(object$stages)
   cat(sprintf("medrev review: %d records, %d search(es)\n",
               nrow(object$records), nrow(object$searches)))
-  if (nrow(out)) print(out, row.names = FALSE)
+  if (nrow(out)) print(out[, c("stage", "n", "detail")], row.names = FALSE)
   invisible(out)
 }
 

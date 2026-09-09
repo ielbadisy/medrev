@@ -53,19 +53,19 @@ prisma <- function(x) {
 
 #' @export
 print.medrev_prisma <- function(x, ...) {
-  f <- function(n) format(n, big.mark = ",")
-  cli::cli_h2("PRISMA flow")
-  cli::cli_text("Records identified                {.strong {f(x[['identified']]) }}")
-  cli::cli_text("  duplicates removed              -{f(x[['duplicates_removed']])}")
+  row <- function(label, n) cat(format(label, width = 32), format(n, big.mark = ","), "\n")
+  cat("PRISMA flow\n")
+  row("records identified", x[["identified"]])
+  row("  duplicates removed", -x[["duplicates_removed"]])
   if (x[["flagged_for_review"]] > 0)
-    cli::cli_text("  (borderline duplicates flagged  {f(x[['flagged_for_review']])})")
-  cli::cli_text("Records after de-duplication      {.strong {f(x[['after_deduplication']])}}")
-  cli::cli_text("Records screened                  {.strong {f(x[['screened']])}}")
-  cli::cli_text("  excluded                        -{f(x[['excluded']])}")
+    row("  borderline duplicates flagged", x[["flagged_for_review"]])
+  row("records after de-duplication", x[["after_deduplication"]])
+  row("records screened", x[["screened"]])
+  row("  excluded", -x[["excluded"]])
   if (x[["maybe"]] > 0)
-    cli::cli_text("  undecided (maybe)               {f(x[['maybe']])}")
-  cli::cli_text("Studies included                  {.strong {f(x[['included']])}}")
-  cli::cli_text("  with an open-access PDF          {f(x[['included_with_pdf']])}")
+    row("  undecided (maybe)", x[["maybe"]])
+  row("studies included", x[["included"]])
+  row("  with an open-access PDF", x[["included_with_pdf"]])
   invisible(x)
 }
 
