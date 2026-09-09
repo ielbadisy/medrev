@@ -1,3 +1,15 @@
+# medrev 0.4.0
+
+* `year_counts()` - publications per year over the full observed range (gap
+  years zero-filled), optionally cumulative.
+* `term_counts()` - keyword / MeSH term frequencies, with `min_n` and `top`.
+* `fulltext()` - download the JATS full text Europe PMC serves for
+  open-access PMC articles, optionally flattened to plain text.
+* `pubmed(ids = )` now also accepts PMC identifiers (`PMCxxxxxxx`).
+* Records from medRxiv / bioRxiv and other preprints are tagged
+  `source = "preprint"`.
+* Added an R-CMD-check GitHub Action.
+
 # medrev 0.3.0
 
 * `add()` appends a further query or identifier lookup to an existing review,
