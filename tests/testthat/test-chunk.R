@@ -1,23 +1,3 @@
-# A review with abstracts long enough to chunk.
-chunkable_review <- function(words_per_abstract = c(300, 40, 5)) {
-  mk <- function(n) paste(rep(c("alpha", "beta", "gamma", "delta"), length.out = n), collapse = " ")
-  df <- data.frame(
-    id = paste0("pmid:", seq_along(words_per_abstract)),
-    source = "europepmc",
-    pmid = as.character(seq_along(words_per_abstract)),
-    pmcid = NA_character_, doi = NA_character_,
-    title = "T", abstract = vapply(words_per_abstract, mk, character(1)),
-    authors = "A", journal = "J", year = 2022L, type = NA_character_,
-    keywords = NA_character_, mesh = NA_character_, language = "eng",
-    is_oa = TRUE, license = NA_character_, url = NA_character_,
-    pdf_url = NA_character_, pdf_source = NA_character_, oa_status = NA_character_,
-    decision = NA_character_, reason = NA_character_, screened_at = NA_character_,
-    retrieved_at = "2026-01-01", stringsAsFactors = FALSE
-  )
-  r <- medrev:::new_medrev(df)
-  medrev:::mr_stage(r, "identified", "t")
-}
-
 test_that("mr_windows makes overlapping windows that cover all words", {
   w <- medrev:::mr_windows("a b c d e f", size = 3, overlap = 1)
   expect_equal(length(w), 3L)
