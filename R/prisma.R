@@ -27,8 +27,8 @@ prisma <- function(x) {
     if (length(hit)) st$n[[hit[[length(hit)]]]] else default
   }
   # Records identified = the peak count before de-duplication, across the
-  # initial search and any add() calls.
-  pre <- st$n[st$stage %in% c("identified", "added")]
+  # initial search, any add() calls, and c() merges.
+  pre <- st$n[st$stage %in% c("identified", "added", "combined")]
   identified <- if (length(pre)) max(pre) else nrow(df)
   after_dedup <- stage_n("deduplicated", identified)
   dup_removed <- max(identified - after_dedup, 0L)
