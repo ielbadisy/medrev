@@ -1,0 +1,66 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file. -->
+
+# medrev
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+`medrev` turns a research question into a folder of open-access PDFs
+plus the audit tables a literature review needs. It searches the
+literature through [Europe PubMed
+Central](https://europepmc.org/RestfulWebService) (which indexes all of
+PubMed and MEDLINE), de-duplicates, tracks screening decisions, resolves
+open-access full text, and downloads it. Record tables are
+[`basetable`](https://github.com/ielbadisy/basetable) objects. Only
+open-access content is fetched; closed-access hits are reported, never
+scraped.
+
+## Installation
+
+``` r
+# install.packages("pak")
+pak::pak("ielbadisy/medrev")
+```
+
+## Usage
+
+``` r
+library(medrev)
+
+r <- pubmed("machine learning for sepsis prediction", n = 300, years = c(2018, 2025))
+r <- dedup(r, fuzzy = TRUE)
+r <- screen(r, exclude = year < 2019, reason = "pre-2019 protocol")
+
+fetch(r, dir = "sepsis_pdfs", name = "{year}_{pmid}")   # resolves OA links + downloads
+prisma(r)                                               # PRISMA-style flow counts
+bibliography(r, "sepsis.ris")                           # RIS / BibTeX / CSV by extension
+```
+
+Start from a reference list instead of a query:
+
+``` r
+r <- pubmed(ids = c("31452104", "10.1038/s41586-020-2649-2"))
+```
+
+Hand-screening in a spreadsheet:
+
+``` r
+sheet <- screen(r)                 # editable: fill the `decision` column
+# ... edit sheet ...
+r <- screen(r, sheet = sheet)
+```
+
+## Configuration
+
+Unpaywall (one of the PDF resolvers) needs a contact e-mail:
+
+``` r
+options(medrev.email = "you@example.org")   # or set MEDREV_EMAIL
+```
+
+## The `medrev` object
+
+A single carrier: `$records` (the record table), `$searches` (query
+log), and `$stages` (row count after each step, which drives
+`prisma()`). `as.data.frame(r)` returns the record table.
