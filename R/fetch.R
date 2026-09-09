@@ -15,6 +15,8 @@
 #' @param name File-name template; `{field}` placeholders are filled from the
 #'   record (`{pmid}`, `{doi}`, `{year}`, `{id}`, ...). `.pdf` is appended.
 #' @param overwrite Re-download files that already exist.
+#' @param limit Optional cap on the number of records to download; the first
+#'   `limit` selected records (those with a resolved link first) are kept.
 #' @param delay Seconds to pause between downloads.
 #' @param errors Optional path to write a TSV of records that could not be
 #'   fetched (no link or download failed).
@@ -33,11 +35,13 @@
 #' log
 #' }
 fetch <- function(x, dir = "medrev_pdfs", which = c("included", "oa", "all"),
-                  name = "{pmid}", overwrite = FALSE, delay = 0.5, errors = NULL,
+                  name = "{pmid}", overwrite = FALSE, limit = NULL, delay = 0.5,
+                  errors = NULL,
                   sources = c("europepmc", "unpaywall", "citation_meta"),
                   email = NULL) {
   mr_assert(x)
   which <- match.arg(which)
+  if (!is.null(limit)) limit <- mr_check_count(limit, "limit", min = 0L)
   df <- mr_df(x)
 
   if (!any(!is.na(df$pdf_url) & nzchar(df$pdf_url))) {
@@ -49,6 +53,11 @@ fetch <- function(x, dir = "medrev_pdfs", which = c("included", "oa", "all"),
   if (!length(sel)) {
     cli::cli_alert_warning("No records match {.arg which = \"{which}\"}.")
     return(mr_download_log(df[0, ]))
+  }
+  if (!is.null(limit) && length(sel) > limit) {
+    has_link <- !is.na(df$pdf_url[sel]) & nzchar(df$pdf_url[sel])
+    sel <- utils::head(c(sel[has_link], sel[!has_link]), limit)
+    cli::cli_alert_info("Limiting to {limit} of the selected records.")
   }
   if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
 

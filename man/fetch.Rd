@@ -10,6 +10,7 @@ fetch(
   which = c("included", "oa", "all"),
   name = "{pmid}",
   overwrite = FALSE,
+  limit = NULL,
   delay = 0.5,
   errors = NULL,
   sources = c("europepmc", "unpaywall", "citation_meta"),
@@ -29,6 +30,9 @@ nothing has been screened), \code{"oa"} (those plus a resolved OA link), or
 record (\code{{pmid}}, \code{{doi}}, \code{{year}}, \code{{id}}, ...). \code{.pdf} is appended.}
 
 \item{overwrite}{Re-download files that already exist.}
+
+\item{limit}{Optional cap on the number of records to download; the first
+\code{limit} selected records (those with a resolved link first) are kept.}
 
 \item{delay}{Seconds to pause between downloads.}
 
