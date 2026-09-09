@@ -1,0 +1,177 @@
+---
+title: "A reproducible biomedical review with medrev"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{A reproducible biomedical review with medrev}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+`medrev` takes a research question to a folder of open-access PDFs plus the
+audit tables a literature review needs. The retrieval and curation steps are
+deterministic; an optional enrichment layer adds model-assisted summary and
+synthesis on top, with the model call supplied by you.
+
+Every code chunk below reaches the network, so this vignette is not evaluated;
+run the pieces yourself.
+
+```{r}
+library(medrev)
+```
+
+## 1. Configure
+
+Unpaywall (one of the PDF resolvers) needs a contact e-mail. Europe PMC does
+not, but it is polite to set one.
+
+```{r}
+options(medrev.email = "you@example.org")   # or set the MEDREV_EMAIL env var
+```
+
+## 2. Search
+
+`pubmed()` searches Europe PubMed Central, which indexes all of PubMed and
+MEDLINE. Supply a topic or a Europe PMC field expression.
+
+```{r}
+r <- pubmed("interpretable machine learning for sepsis prognosis",
+            n = 400, years = c(2015, 2025))
+r
+```
+
+Add a second query, or a set of identifiers, with `add()`; scan medRxiv /
+bioRxiv for very recent preprints with `preprints()` and merge with `c()`.
+
+```{r}
+r <- add(r, "sepsis mortality prediction deep learning", n = 200)
+pp <- preprints("sepsis machine learning prognosis", "medrxiv", from = "2025-01-01")
+r <- c(r, pp)
+search_log(r)
+```
+
+## 3. De-duplicate
+
+Exact identifier matches first, then near-identical titles when
+`fuzzy = TRUE`. Borderline title matches are kept and listed for a manual
+look rather than dropped.
+
+```{r}
+r <- dedup(r, fuzzy = TRUE)
+attr(r, "duplicate_audit")
+attr(r, "review_candidates")
+```
+
+## 4. Screen
+
+Screen by condition (evaluated against the record table, as in `subset()`):
+
+```{r}
+r <- screen(r, exclude = year < 2016, reason = "pre-2016 protocol")
+r <- screen(r,
+            exclude = !grepl("machine learning|deep learning|neural network",
+                             tolower(paste(title, abstract))),
+            reason = "not an ML study")
+```
+
+or hand-screen in a spreadsheet:
+
+```{r}
+screen(r, file = "screen.csv")     # fill the `decision` column, then:
+r <- screen(r, sheet = "screen.csv")
+```
+
+## 5. Describe the corpus
+
+```{r}
+year_counts(r, which = "included")
+term_counts(r, "mesh", top = 20)
+```
+
+## 6. Resolve and download open-access PDFs
+
+`resolve()` attaches a PDF link from Europe PMC full text, then Unpaywall,
+then the publisher `citation_pdf_url` tag. Links are cached on disk, so
+re-running a review that overlaps a previous one is nearly free.
+
+```{r}
+r <- resolve(r)
+table(as.data.frame(r)$pdf_source, useNA = "ifany")
+
+dl <- fetch(r, dir = "sepsis_pdfs", which = "included", name = "{year}_{pmid}")
+dl
+```
+
+`fetch()` rejects responses that are not actually PDFs (paywall or error
+pages) and logs them as failures. `limit =` caps the number of downloads.
+
+## 7. Study flow and references
+
+```{r}
+prisma(r)
+bibliography(r, "sepsis.ris", which = "included")   # .ris / .bib / .csv by extension
+```
+
+## 8. Model-assisted synthesis (optional)
+
+The enrichment verbs take a **model callback**: any function that accepts a
+prompt string and returns the model's text response. `medrev` builds the
+grounded prompts and parses the responses; generated content is kept in a
+`medrev_insights` table and never written back into the records.
+
+Here is a callback that calls the Claude API over HTTP:
+
+```{r}
+claude <- function(prompt, ...) {
+  resp <- httr2::request("https://api.anthropic.com/v1/messages") |>
+    httr2::req_headers(
+      "x-api-key" = Sys.getenv("ANTHROPIC_API_KEY"),
+      "anthropic-version" = "2023-06-01"
+    ) |>
+    httr2::req_body_json(list(
+      model = "claude-opus-5",
+      max_tokens = 1024,
+      messages = list(list(role = "user", content = prompt))
+    )) |>
+    httr2::req_retry(max_tries = 3) |>
+    httr2::req_perform()
+  httr2::resp_body_json(resp)$content[[1]]$text
+}
+```
+
+`llm_echo()` is a deterministic stub if you just want to see the plumbing
+move.
+
+```{r}
+ch  <- chunk(r, which = "included")            # abstracts; pass fulltext(r) for full text
+sm  <- summarize(ch, llm = claude)             # one grounded summary per study
+ex  <- extract(ch, llm = claude,
+               fields = c(design  = "study design",
+                          n       = "total sample size",
+                          outcome = "primary outcome",
+                          auc     = "reported discrimination (AUC/C-index)"))
+extractions(ex)                                # one row per study, a column per field
+syn <- synthesize(c(sm, ex), llm = claude)     # cross-study synthesis
+
+review_brief(r, insights = c(sm, ex, syn),
+             title = "Interpretable ML for sepsis prognosis: rapid brief",
+             file  = "brief.md")
+```
+
+The brief is Markdown: the search log, the PRISMA flow, the synthesis, a
+per-study block (citation plus its summary and extracted fields), and a
+numbered reference list of the included studies.
+
+## The `medrev` object
+
+One carrier holds the whole review:
+
+- `as.data.frame(r)` -- the record table (a `basetable`) with a stable schema.
+- `r$searches` -- one row per `pubmed()` / `add()` / `preprints()` call.
+- `r$stages` -- the row count after each pipeline step, which is what
+  `prisma()` reads.
+
+`r[i, ]` subsets the records; `c()` merges reviews.
