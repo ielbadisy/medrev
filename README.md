@@ -156,6 +156,32 @@ pp <- preprints("sepsis machine learning", "medrxiv", from = "2025-06-01")
 r  <- c(pubmed("sepsis machine learning", n = 200), pp)   # merged, deduped by id
 ```
 
+## Model-assisted synthesis (optional)
+
+The enrichment verbs need a **model callback** you supply: any
+`function(prompt, ...)` that returns a string. medrev builds the grounded
+prompts and parses the responses; nothing is written back into the record
+table. `llm_echo()` is a stub for trying the plumbing.
+
+``` r
+model <- function(prompt, ...) {
+  # call your LLM of choice here and return its text response
+}
+
+ch  <- chunk(r, which = "included")                 # abstracts (or fulltext(r))
+sm  <- summarize(ch, llm = model)                   # one grounded summary per study
+ex  <- extract(ch, llm = model,                     # structured fields as JSON
+               fields = c(design = "study design",
+                          n = "sample size",
+                          outcome = "primary outcome"))
+extractions(ex)                                     # -> one row per study, a column per field
+syn <- synthesize(c(sm, ex), llm = model)           # cross-study synthesis
+
+review_brief(r, insights = c(sm, ex, syn),
+             title = "Sepsis prognosis: rapid brief",
+             file = "brief.md")                     # Markdown: flow + synthesis + studies + refs
+```
+
 ## Hand-screening in a spreadsheet
 
 ``` r
