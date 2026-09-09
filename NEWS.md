@@ -1,3 +1,16 @@
+# medrev 0.7.0
+
+* `screen()` gains `file =` to write the blank screening sheet to CSV, and
+  `sheet =` now also accepts a path to such a CSV - a spreadsheet round trip
+  without hand-rolling `write.csv()` / `read.csv()`.
+* `resolve()` runs the Unpaywall and citation-metadata lookups as a
+  concurrent batch (`max_active`, default 5) instead of one blocking request
+  per DOI, and caches every link it finds on disk (keyed by record id) so
+  re-resolving an overlapping review skips the network. `cache = FALSE` opts
+  out; `medrev_cache_path()` / `medrev_cache_clear()` manage the cache.
+* New getting-started vignette, including a concrete Claude API callback for
+  the enrichment layer.
+
 # medrev 0.6.0
 
 The optional model-assisted enrichment layer. A "model" is any function
