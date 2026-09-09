@@ -55,8 +55,14 @@ mr_authors_etal <- function(x, max_authors = 3) {
 mr_cite <- function(row) {
   yr <- if (is.na(row$year)) "n.d." else as.character(row$year)
   doi <- if (is.na(row$doi) || !nzchar(row$doi)) "" else paste0(" doi:", row$doi)
+  drop_dot <- function(s) {
+    s <- s %||% ""
+    if (is.na(s)) "" else sub("[[:space:].]+$", "", s)
+  }
+  parts <- c(drop_dot(row$title), drop_dot(row$journal))
+  parts <- parts[nzchar(parts)]
   paste0(mr_authors_etal(row$authors), " (", yr, "). ",
-         row$title %||% "", ". ", row$journal %||% "", ".", doi)
+         paste0(parts, ".", collapse = " "), doi)
 }
 
 mr_cite_key <- function(row) {
