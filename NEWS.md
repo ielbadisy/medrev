@@ -1,3 +1,11 @@
+# medrev 0.3.0
+
+* `add()` appends a further query or identifier lookup to an existing review,
+  merging new records and skipping ids already present.
+* `search_log()` returns the per-search audit log (one row per `pubmed()` /
+  `add()` call).
+* `prisma()` counts `add()` stages in the "records identified" total.
+
 # medrev 0.2.0
 
 * `fetch()` gains `limit` to cap the number of downloads; records with a
