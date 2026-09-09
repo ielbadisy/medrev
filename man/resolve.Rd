@@ -7,7 +7,9 @@
 resolve(
   x,
   sources = c("europepmc", "unpaywall", "citation_meta"),
-  email = NULL
+  email = NULL,
+  cache = TRUE,
+  max_active = 5L
 )
 }
 \arguments{
@@ -16,26 +18,36 @@ resolve(
 \item{sources}{Character vector of sources to try, in order.}
 
 \item{email}{Contact e-mail for Unpaywall.}
+
+\item{cache}{Use (and update) the on-disk link cache.}
+
+\item{max_active}{Maximum concurrent HTTP requests for the Unpaywall and
+citation-metadata passes.}
 }
 \value{
 The \code{medrev} object with \code{pdf_url}, \code{pdf_source}, and \code{oa_status}
 filled where a link was found, and a \code{"resolved"} stage logged.
 }
 \description{
-For each record without a PDF link yet, tries the requested \code{sources} in
-order and stops at the first hit. Only open-access locations are used;
-closed-access records keep an empty \code{pdf_url}. This is called automatically
-by \code{\link[=fetch]{fetch()}}; use it directly to inspect coverage first.
+For each record without a PDF link yet, tries the requested \code{sources} and
+keeps the first hit. Only open-access locations are used; closed-access
+records keep an empty \code{pdf_url}. Called automatically by \code{\link[=fetch]{fetch()}}; use it
+directly to inspect coverage first.
 }
 \details{
 Sources:
 \itemize{
-\item \code{"europepmc"} - the Europe PMC full-text PDF for open-access PMC articles.
-\item \code{"unpaywall"} - the best open-access PDF Unpaywall knows for the DOI,
-anywhere on the web. Requires a contact e-mail (see \code{\link[=medrev_email]{medrev_email()}}).
-\item \code{"citation_meta"} - the \code{citation_pdf_url} tag on the article's landing
-page, used only when the record is already known to be open access.
+\item \code{"europepmc"} - the Europe PMC full-text PDF for open-access PMC articles
+(no network call - the URL is constructed).
+\item \code{"unpaywall"} - the best open-access PDF Unpaywall knows for the DOI.
+Requires a contact e-mail (see \code{\link[=medrev_email]{medrev_email()}}). Queried for all
+candidates at once, \code{max_active} requests in flight.
+\item \code{"citation_meta"} - the \code{citation_pdf_url} tag on the landing page, only
+for records already known to be open access.
 }
+
+Every link found is written to an on-disk cache (see \code{\link[=medrev_cache_path]{medrev_cache_path()}}),
+so re-running \code{resolve()} on an overlapping review is nearly free.
 }
 \examples{
 \dontrun{
