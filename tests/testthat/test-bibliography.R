@@ -4,6 +4,17 @@ test_that("bibliography() returns formatted strings with no file", {
   expect_match(refs[1], "Smith J.*\\(2021\\).*Deep learning for sepsis")
 })
 
+test_that("citations do not double the sentence period", {
+  r <- fake_review()
+  df <- medrev:::mr_df(r)
+  df$title[1] <- "A title that already ends with a period."
+  df$journal[1] <- "Some Journal."
+  r <- medrev:::mr_set_df(r, df)
+  ref <- bibliography(r)[1]
+  expect_false(grepl("\\.\\.", ref))
+  expect_match(ref, "period\\. Some Journal\\.")
+})
+
 test_that("RIS export is well formed", {
   f <- withr::local_tempfile(fileext = ".ris")
   bibliography(fake_review(), f)
