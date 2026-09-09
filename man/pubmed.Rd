@@ -31,7 +31,8 @@ A \code{medrev} object. Its record table (\code{as.data.frame(x)}) has one
 row per hit with columns \code{id}, \code{source}, \code{pmid}, \code{pmcid}, \code{doi}, \code{title},
 \code{abstract}, \code{authors}, \code{journal}, \code{year}, \code{type}, \code{keywords}, \code{mesh},
 \code{language}, \code{is_oa}, \code{license}, \code{url}, and empty \code{pdf_url} / \code{oa_status} /
-\code{decision} columns filled by later steps.
+\code{decision} columns filled by later steps. \code{source} is \code{"preprint"} for
+medRxiv / bioRxiv and other preprints, \code{"europepmc"} otherwise.
 }
 \description{
 Searches the biomedical literature through Europe PubMed Central, which

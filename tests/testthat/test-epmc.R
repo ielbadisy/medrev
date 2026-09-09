@@ -27,6 +27,16 @@ test_that("mr_epmc_row maps a core result to the schema", {
   expect_equal(row$url, "https://doi.org/10.1000/xyz")
 })
 
+test_that("preprint records are tagged in the source column", {
+  ppr <- list(id = "PPR123", source = "PPR", doi = "10.1101/2024.01.01.573000",
+              title = "A preprint", pubYear = "2024",
+              pubTypeList = list(pubType = list("Preprint")))
+  expect_equal(medrev:::mr_epmc_row(ppr)$source, "preprint")
+
+  med <- list(id = "1", source = "MED", pmid = "1", title = "x", pubYear = "2020")
+  expect_equal(medrev:::mr_epmc_row(med)$source, "europepmc")
+})
+
 test_that("mr_epmc_row tolerates an empty record and yields the schema", {
   empty <- medrev:::mr_empty_records()
   expect_equal(nrow(empty), 0L)

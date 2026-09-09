@@ -23,7 +23,8 @@
 #'   row per hit with columns `id`, `source`, `pmid`, `pmcid`, `doi`, `title`,
 #'   `abstract`, `authors`, `journal`, `year`, `type`, `keywords`, `mesh`,
 #'   `language`, `is_oa`, `license`, `url`, and empty `pdf_url` / `oa_status` /
-#'   `decision` columns filled by later steps.
+#'   `decision` columns filled by later steps. `source` is `"preprint"` for
+#'   medRxiv / bioRxiv and other preprints, `"europepmc"` otherwise.
 #' @export
 #'
 #' @examples
