@@ -17,6 +17,7 @@ test_that("prisma counts an added stage in the identified total", {
 
 test_that("add() merges a live second search", {
   skip_on_cran()
+  skip_on_ci()
   skip_if_offline("www.ebi.ac.uk")
   r <- pubmed("sepsis prognosis machine learning", n = 15)
   n1 <- nrow(as.data.frame(r))

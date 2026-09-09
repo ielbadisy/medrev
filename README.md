@@ -4,6 +4,8 @@
 # medrev
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/ielbadisy/medrev/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ielbadisy/medrev/actions/workflows/R-CMD-check.yaml)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
 `medrev` turns a research question into a folder of open-access PDFs

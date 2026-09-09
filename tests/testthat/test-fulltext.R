@@ -28,6 +28,7 @@ test_that("fulltext() with no PMC ids returns an empty typed log", {
 
 test_that("fulltext() retrieves real JATS text for an OA article", {
   skip_on_cran()
+  skip_on_ci()
   skip_if_offline("www.ebi.ac.uk")
   r <- pubmed(ids = "PMC7327471")            # an OA PMC article
   ft <- as.data.frame(fulltext(r, which = "all"))
