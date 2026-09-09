@@ -2,16 +2,18 @@
 
 #' Screen records for inclusion
 #'
-#' Three ways to use it:
+#' Ways to use it:
 #'
 #' * `screen(x)` with no other arguments returns an editable **screening
 #'   sheet**: one row per record with empty `decision` / `exclude_reason` /
 #'   `reviewer` / `notes` columns.
+#' * `screen(x, file = "screen.csv")` writes that sheet to a CSV for
+#'   hand-editing and returns `x` unchanged.
 #' * `screen(x, include = <condition>)` / `screen(x, exclude = <condition>,
 #'   reason = "...")` evaluate the conditions against the record table (as in
 #'   [subset()]) and set `decision` for the matching rows.
-#' * `screen(x, sheet = <edited sheet>)` reads decisions back from a sheet
-#'   returned by the first form.
+#' * `screen(x, sheet = <edited sheet>)` reads decisions back. `sheet` may be
+#'   a data frame or the path to a CSV written by the `file =` form.
 #'
 #' @param x A `medrev` object.
 #' @param include,exclude Unquoted conditions evaluated in the record table
@@ -19,25 +21,40 @@
 #'   `include` marks matches `"include"`; `exclude` marks matches `"exclude"`.
 #' @param reason Short text stored in `reason` for rows matched by `exclude`.
 #' @param sheet A data frame returned by `screen(x)` with its `decision`
-#'   column filled in.
+#'   column filled in, or a path to a CSV of the same shape.
+#' @param file A path to write the blank screening sheet to (CSV). When given,
+#'   the other decision arguments are ignored and `x` is returned invisibly.
 #'
 #' @return With `sheet` or a condition: the `medrev` object with `decision`,
-#'   `reason`, `screened_at` updated and a `"screened"` stage logged. With no
-#'   arguments: a `basetable` screening sheet.
+#'   `reason`, `screened_at` updated and a `"screened"` stage logged. With
+#'   `file`: `x`, invisibly. With no arguments: a `basetable` screening sheet.
 #' @export
 #'
 #' @examples
 #' \dontrun{
 #' r <- pubmed("statins primary prevention", n = 100)
 #' r <- screen(r, exclude = year < 2005, reason = "pre-2005")
-#' sheet <- screen(r)                 # to edit by hand
-#' r <- screen(r, sheet = sheet)
+#' screen(r, file = "screen.csv")     # edit the CSV by hand, then:
+#' r <- screen(r, sheet = "screen.csv")
 #' }
-screen <- function(x, include, exclude, reason = NA_character_, sheet = NULL) {
+screen <- function(x, include, exclude, reason = NA_character_, sheet = NULL,
+                   file = NULL) {
   mr_assert(x)
   df <- mr_df(x)
 
+  if (!is.null(file)) {
+    mr_check_string(file, "file")
+    utils::write.csv(as.data.frame(mr_screen_sheet(df)), file,
+                     row.names = FALSE, na = "")
+    cli::cli_alert_success("Screening sheet ({nrow(df)} rows) written to {.path {file}}.")
+    return(invisible(x))
+  }
   if (!is.null(sheet)) {
+    if (is.character(sheet) && length(sheet) == 1L) {
+      if (!file.exists(sheet)) mr_stop("Sheet file not found: {.path {sheet}}.")
+      sheet <- utils::read.csv(sheet, stringsAsFactors = FALSE,
+                               colClasses = "character", na.strings = c("", "NA"))
+    }
     return(mr_apply_sheet(x, sheet))
   }
   has_inc <- !missing(include)

@@ -36,6 +36,30 @@ test_that("a filled sheet round-trips through screen(sheet=)", {
   expect_false(any(is.na(df$screened_at)))
 })
 
+test_that("screen(file=) writes a CSV and screen(sheet=<path>) reads it back", {
+  r <- dedup(fake_review())
+  f <- withr::local_tempfile(fileext = ".csv")
+  out <- screen(r, file = f)
+  expect_identical(out, r)                       # x returned unchanged
+  sheet <- read.csv(f, stringsAsFactors = FALSE)
+  expect_equal(nrow(sheet), nrow(as.data.frame(r)))
+  expect_true(all(c("id", "decision", "exclude_reason") %in% names(sheet)))
+  expect_true(all(sheet$decision == "" | is.na(sheet$decision)))
+
+  sheet$decision <- c("include", "exclude", "maybe", "include")
+  sheet$exclude_reason[2] <- "off topic"
+  write.csv(sheet, f, row.names = FALSE, na = "")
+
+  r2 <- screen(r, sheet = f)
+  df <- as.data.frame(r2)
+  expect_equal(df$decision, c("include", "exclude", "maybe", "include"))
+  expect_equal(df$reason[2], "off topic")
+})
+
+test_that("screen(sheet=) errors on a missing file path", {
+  expect_error(screen(fake_review(), sheet = "no-such-file.csv"), "not found")
+})
+
 test_that("screening is visible to prisma()", {
   r <- screen(fake_review(), exclude = year < 2010, reason = "old")
   p <- prisma(r)
