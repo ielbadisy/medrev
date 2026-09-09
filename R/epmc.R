@@ -10,6 +10,7 @@ mr_epmc_row <- function(rec) {
                  function(m) mr_chr1(m$descriptorName), character(1))
   journal <- rec$journalInfo$journal$title %|% rec$journalTitle %|% NA_character_
   native <- mr_chr1(rec$source)             # e.g. "MED", "PMC", "PPR"
+  src <- if (identical(toupper(native %|% ""), "PPR")) "preprint" else "europepmc"
   eid <- mr_chr1(rec$id)
   urls <- rec$fullTextUrlList$fullTextUrl %|% list()
   pdf_url <- NA_character_
@@ -23,7 +24,7 @@ mr_epmc_row <- function(rec) {
   doi <- tolower(mr_chr1(rec$doi))
   data.frame(
     id = NA_character_,
-    source = "europepmc",
+    source = src,
     pmid = if (identical(native, "MED")) eid else mr_chr1(rec$pmid),
     pmcid = mr_chr1(rec$pmcid),
     doi = doi,
