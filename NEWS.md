@@ -1,3 +1,14 @@
+# medrev 0.2.0
+
+* `fetch()` gains `limit` to cap the number of downloads; records with a
+  resolved link are taken first.
+* `print.medrev`, `print.medrev_prisma`, and `summary.medrev` now write to
+  stdout with `cat()` instead of `cli`, so their output is visible in
+  scripts, reports, and knitr (previously silent there).
+* `bibliography()` no longer doubles the sentence period when a title or
+  journal name already ends with one.
+* README now knits an executed end-to-end workflow against Europe PMC.
+
 # medrev 0.1.0
 
 First release. A base-R-style pipeline for topic-driven biomedical literature
