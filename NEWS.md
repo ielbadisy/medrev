@@ -1,3 +1,21 @@
+# medrev 0.6.0
+
+The optional model-assisted enrichment layer. A "model" is any function
+`function(prompt, ...)` returning a string; medrev builds the grounded
+prompts and parses the responses, and generated content is kept in a
+`medrev_insights` table, never written back into the records.
+
+* `chunk()` - split each record's abstract (or `fulltext()` output) into
+  overlapping word windows (`medrev_chunks`).
+* `summarize()` - one grounded summary per record, or one over all chunks.
+* `extract()` / `extractions()` - pull a fixed set of JSON fields from the
+  evidence and flatten them to one row per study.
+* `synthesize()` - a cross-study synthesis from the summaries / extractions.
+* `review_brief()` - assemble a Markdown brief (search log, PRISMA flow,
+  synthesis, per-study notes, references); `file =` writes it out.
+* `llm_echo()` - a deterministic stub model for trying the plumbing.
+* `c()` also merges `medrev_insights` tables.
+
 # medrev 0.5.0
 
 * `preprints()` - a medRxiv / bioRxiv backend. The API has no text search, so
