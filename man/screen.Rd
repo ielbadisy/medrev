@@ -4,7 +4,7 @@
 \alias{screen}
 \title{Screen records for inclusion}
 \usage{
-screen(x, include, exclude, reason = NA_character_, sheet = NULL)
+screen(x, include, exclude, reason = NA_character_, sheet = NULL, file = NULL)
 }
 \arguments{
 \item{x}{A \code{medrev} object.}
@@ -16,32 +16,37 @@ screen(x, include, exclude, reason = NA_character_, sheet = NULL)
 \item{reason}{Short text stored in \code{reason} for rows matched by \code{exclude}.}
 
 \item{sheet}{A data frame returned by \code{screen(x)} with its \code{decision}
-column filled in.}
+column filled in, or a path to a CSV of the same shape.}
+
+\item{file}{A path to write the blank screening sheet to (CSV). When given,
+the other decision arguments are ignored and \code{x} is returned invisibly.}
 }
 \value{
 With \code{sheet} or a condition: the \code{medrev} object with \code{decision},
-\code{reason}, \code{screened_at} updated and a \code{"screened"} stage logged. With no
-arguments: a \code{basetable} screening sheet.
+\code{reason}, \code{screened_at} updated and a \code{"screened"} stage logged. With
+\code{file}: \code{x}, invisibly. With no arguments: a \code{basetable} screening sheet.
 }
 \description{
-Three ways to use it:
+Ways to use it:
 }
 \details{
 \itemize{
 \item \code{screen(x)} with no other arguments returns an editable \strong{screening
 sheet}: one row per record with empty \code{decision} / \code{exclude_reason} /
 \code{reviewer} / \code{notes} columns.
+\item \code{screen(x, file = "screen.csv")} writes that sheet to a CSV for
+hand-editing and returns \code{x} unchanged.
 \item \verb{screen(x, include = <condition>)} / \verb{screen(x, exclude = <condition>, reason = "...")} evaluate the conditions against the record table (as in
 \code{\link[basetable:subset]{basetable::subset()}}) and set \code{decision} for the matching rows.
-\item \verb{screen(x, sheet = <edited sheet>)} reads decisions back from a sheet
-returned by the first form.
+\item \verb{screen(x, sheet = <edited sheet>)} reads decisions back. \code{sheet} may be
+a data frame or the path to a CSV written by the \verb{file =} form.
 }
 }
 \examples{
 \dontrun{
 r <- pubmed("statins primary prevention", n = 100)
 r <- screen(r, exclude = year < 2005, reason = "pre-2005")
-sheet <- screen(r)                 # to edit by hand
-r <- screen(r, sheet = sheet)
+screen(r, file = "screen.csv")     # edit the CSV by hand, then:
+r <- screen(r, sheet = "screen.csv")
 }
 }
