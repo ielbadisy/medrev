@@ -32,7 +32,8 @@ Imports:
     httr2,
     rlang,
     tools,
-    utils
+    utils,
+    xml2
 Suggests:
     knitr,
     rmarkdown,
