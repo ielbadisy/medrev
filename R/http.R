@@ -79,3 +79,15 @@ epmc_json <- function(path, query = list(), email = NULL) {
   httr2::resp_check_status(resp)
   httr2::resp_body_json(resp, simplifyVector = FALSE)
 }
+
+# JATS full-text XML for a PMC article, or NA when not available.
+epmc_fulltext_xml <- function(pmcid, email = NULL) {
+  req <- mr_req(.mr_epmc, email = email, rate = 8) |>
+    httr2::req_url_path_append(pmcid, "fullTextXML") |>
+    httr2::req_error(is_error = function(resp) FALSE)
+  resp <- httr2::req_perform(req)
+  if (httr2::resp_status(resp) != 200L) return(NA_character_)
+  ct <- tryCatch(httr2::resp_content_type(resp), error = function(e) "")
+  if (!grepl("xml", ct, ignore.case = TRUE)) return(NA_character_)
+  httr2::resp_body_string(resp)
+}

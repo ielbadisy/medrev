@@ -75,8 +75,13 @@ mr_run_search <- function(query, ids, n, years, sort) {
 mr_search_ids <- function(ids, n) {
   ids <- mr_as_ids(ids)
   if (!length(ids)) mr_stop("No identifiers supplied.")
-  is_doi <- grepl("^10\\.", ids)
-  terms <- ifelse(is_doi, sprintf('DOI:"%s"', tolower(ids)), sprintf("EXT_ID:%s", ids))
+  kind <- ifelse(grepl("^10\\.", ids), "doi",
+          ifelse(grepl("^PMC[0-9]+$", ids, ignore.case = TRUE), "pmcid", "pmid"))
+  terms <- vapply(seq_along(ids), function(i) switch(kind[[i]],
+    doi = sprintf('DOI:"%s"', tolower(ids[[i]])),
+    pmcid = sprintf("PMCID:%s", toupper(ids[[i]])),
+    pmid = sprintf("EXT_ID:%s", ids[[i]])
+  ), character(1))
 
   cli::cli_progress_step("Looking up {length(ids)} identifier{?s} in Europe PMC")
   chunks <- split(terms, ceiling(seq_along(terms) / 40L))
@@ -88,8 +93,9 @@ mr_search_ids <- function(ids, n) {
   rownames(df) <- NULL
   cli::cli_progress_done()
 
-  found <- c(df$pmid[!is.na(df$pmid)], tolower(df$doi[!is.na(df$doi)]))
-  missing <- ids[!(ids %in% found | tolower(ids) %in% found)]
+  found <- tolower(c(df$pmid[!is.na(df$pmid)], df$doi[!is.na(df$doi)],
+                     df$pmcid[!is.na(df$pmcid)]))
+  missing <- ids[!tolower(ids) %in% found]
   if (length(missing)) cli::cli_alert_warning("{length(missing)} identifier{?s} not found in Europe PMC.")
 
   list(df = df, label = sprintf("%d supplied ids", length(ids)),
