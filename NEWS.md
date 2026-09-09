@@ -1,3 +1,13 @@
+# medrev 0.5.0
+
+* `preprints()` - a medRxiv / bioRxiv backend. The API has no text search, so
+  it scans a publication-date window and keeps records whose
+  title/abstract/category contain the query words.
+* `c()` (`c.medrev`) merges the records, search logs, and stage logs of
+  several `medrev` objects, deduping by `id` - e.g.
+  `c(pubmed(...), preprints(...))`.
+* `prisma()` counts `c()` merges in the "records identified" total.
+
 # medrev 0.4.0
 
 * `year_counts()` - publications per year over the full observed range (gap
