@@ -2,6 +2,7 @@
 
 test_that("pubmed() searches Europe PMC end to end", {
   skip_on_cran()
+  skip_on_ci()
   skip_if_offline("www.ebi.ac.uk")
   r <- pubmed("crispr cas9 off-target", n = 12)
   expect_s3_class(r, "medrev")
@@ -13,6 +14,7 @@ test_that("pubmed() searches Europe PMC end to end", {
 
 test_that("pubmed(ids=) resolves identifiers", {
   skip_on_cran()
+  skip_on_ci()
   skip_if_offline("www.ebi.ac.uk")
   r <- pubmed(ids = c("28495875", "10.1038/nbt.3820"))
   expect_gte(nrow(as.data.frame(r)), 1L)
@@ -20,6 +22,7 @@ test_that("pubmed(ids=) resolves identifiers", {
 
 test_that("resolve() + fetch() downloads at least one OA PDF", {
   skip_on_cran()
+  skip_on_ci()
   skip_if_offline("www.ebi.ac.uk")
   dir <- withr::local_tempdir()
   r <- pubmed("open access machine learning radiology", n = 15)
