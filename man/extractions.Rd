@@ -7,7 +7,7 @@
 extractions(insights)
 }
 \arguments{
-\item{insights}{A \code{medrev_insights} object from \code{\link[basetable:extract]{basetable::extract()}}.}
+\item{insights}{A \code{medrev_insights} object from \code{\link[=extract]{extract()}}.}
 }
 \value{
 A \code{basetable} with \code{record_id}, \code{insight_id}, and one column per
