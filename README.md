@@ -145,6 +145,17 @@ d2[, c("pmid", "year", "title")]
 #> 2 19621072 2009 Preferred reporting items for systematic reviews and me
 ```
 
+## Adding preprints
+
+Europe PMC already indexes many preprints (they come back as
+`source = "preprint"`). For the most recent ones, scan medRxiv / bioRxiv
+directly and combine the two searches with `c()`:
+
+``` r
+pp <- preprints("sepsis machine learning", "medrxiv", from = "2025-06-01")
+r  <- c(pubmed("sepsis machine learning", n = 200), pp)   # merged, deduped by id
+```
+
 ## Hand-screening in a spreadsheet
 
 ``` r
