@@ -30,6 +30,7 @@ Imports:
     basetable (>= 1.4.0),
     cli,
     httr2,
+    jsonlite,
     rlang,
     tools,
     utils,
