@@ -18,7 +18,7 @@ test_that("prisma() reflects screening exclusions", {
 
 test_that("prisma print and as.data.frame work", {
   p <- prisma(fake_review())
-  expect_no_error(print(p))
+  expect_output(print(p), "PRISMA flow")
   d <- as.data.frame(p)
   expect_true(all(c("step", "n") %in% names(d)))
 })
