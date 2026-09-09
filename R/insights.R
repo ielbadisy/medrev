@@ -61,6 +61,13 @@ as.data.frame.medrev_insights <- function(x, ...) {
   x
 }
 
+#' @export
+c.medrev_insights <- function(...) {
+  xs <- Filter(function(z) inherits(z, "medrev_insights"), list(...))
+  if (!length(xs)) mr_stop("{.fn c} needs at least one {.cls medrev_insights} object.")
+  new_medrev_insights(do.call(rbind, lapply(xs, as.data.frame)))
+}
+
 # Validate a model callback.
 mr_check_llm <- function(llm) {
   if (!is.function(llm)) {
