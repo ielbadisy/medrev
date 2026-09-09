@@ -26,6 +26,7 @@ fake_review <- function() {
     stringsAsFactors = FALSE
   )
   r <- medrev:::new_medrev(df)
+  r <- medrev:::mr_log_search(r, "fake query", "europepmc", 5L, 5L)
   r <- medrev:::mr_stage(r, "identified", "test")
   r
 }
