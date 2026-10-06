@@ -57,8 +57,8 @@ mr_run_search <- function(query, ids, n, years, sort) {
   full <- query
   if (!is.null(years)) {
     yr <- as.integer(years)
-    lo <- yr[[1]]
-    hi <- if (length(yr) >= 2L) yr[[2]] else as.integer(format(Sys.Date(), "%Y"))
+    lo <- min(yr)
+    hi <- if (length(yr) >= 2L) max(yr) else as.integer(format(Sys.Date(), "%Y"))
     full <- sprintf("(%s) AND (PUB_YEAR:[%d TO %d])", query, lo, hi)
   }
   sort_clause <- if (identical(sort, "date")) "P_PDATE_D desc" else ""
