@@ -4,8 +4,10 @@
 # medrev
 
 <!-- badges: start -->
+
 [![R-CMD-check](https://github.com/ielbadisy/medrev/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ielbadisy/medrev/actions/workflows/R-CMD-check.yaml)
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
 `medrev` turns a research question into a folder of open-access PDFs
@@ -13,7 +15,10 @@ plus the audit tables a literature review needs. It searches the
 literature through [Europe PubMed
 Central](https://europepmc.org/RestfulWebService) (which indexes all of
 PubMed and MEDLINE), de-duplicates, tracks screening decisions, resolves
-open-access full text, and downloads it. Record tables are
+open-access full text, and downloads it. An optional model-assisted
+layer extracts study characteristics and effect data with a verbatim
+quote for every value, checks them against the source text, and returns
+an effect-size table ready for `metafor` or `meta`. Record tables are
 [`basetable`](https://github.com/ielbadisy/basetable) objects. Only
 open-access content is fetched; closed-access hits are reported, never
 scraped.
@@ -156,31 +161,48 @@ pp <- preprints("sepsis machine learning", "medrxiv", from = "2025-06-01")
 r  <- c(pubmed("sepsis machine learning", n = 200), pp)   # merged, deduped by id
 ```
 
-## Model-assisted synthesis (optional)
+## Records from other databases
 
-The enrichment verbs need a **model callback** you supply: any
-`function(prompt, ...)` that returns a string. medrev builds the grounded
-prompts and parses the responses; nothing is written back into the record
-table. `llm_echo()` is a stub for trying the plumbing.
+Exports from Embase, the Cochrane Library or Web of Science, or a
+hand-made list of studies, become a review with `medrev()` and can be
+merged with Europe PMC searches:
+
+``` r
+emb <- medrev(read.csv("embase.csv"), source = "embase")
+r   <- dedup(c(pubmed("sepsis machine learning", n = 200), emb))
+```
+
+## Data extraction and meta-analysis (optional)
+
+The model-assisted verbs need a **model callback** you supply: any
+`function(prompt, ...)` that returns a string. medrev builds the
+grounded prompts and parses the responses; nothing is written back into
+the record table.
 
 ``` r
 model <- function(prompt, ...) {
   # call your LLM of choice here and return its text response
 }
 
-ch  <- chunk(r, which = "included")                 # abstracts (or fulltext(r))
-sm  <- summarize(ch, llm = model)                   # one grounded summary per study
-ex  <- extract(ch, llm = model,                     # structured fields as JSON
-               fields = c(design = "study design",
-                          n = "sample size",
-                          outcome = "primary outcome"))
-extractions(ex)                                     # -> one row per study, a column per field
-syn <- synthesize(c(sm, ex), llm = model)           # cross-study synthesis
+ft <- pdftext(r, dir = "pdfs")                # text of PDFs you already have
+ch <- chunk(r, fulltext = list(ft, fulltext(r)))
 
-review_brief(r, insights = c(sm, ex, syn),
-             title = "Sepsis prognosis: rapid brief",
-             file = "brief.md")                     # Markdown: flow + synthesis + studies + refs
+sr <- extract(ch, model, form = form("sr"))   # study characteristics, one row per study
+ma <- extract(ch, model, form = form("ma"))   # effect data, one row per outcome x timepoint
+verify(c(sr, ma), ch)                         # quotes found in the text? impossible values?
+agreement(ma, extract(ch, model2, form = form("ma")))   # double extraction
+
+es <- effectsizes(ma, study = studies(sr))    # yi, sei on the pooling scale
+metafor::rma(yi, vi, data = as.data.frame(es))
 ```
+
+Every value comes with the verbatim quote that supports it
+(`extractions(sr, quotes = TRUE)`). `vignette("extraction", "medrev")`
+runs the whole loop offline.
+
+`summarize()`, `synthesize()` and `review_brief()` add grounded
+per-study summaries, a cross-study synthesis, and a Markdown brief.
+`llm_echo()` is a stub for trying the plumbing.
 
 ## Hand-screening in a spreadsheet
 
