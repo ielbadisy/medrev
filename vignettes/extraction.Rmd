@@ -186,7 +186,7 @@ issues[issues$severity != "note", c("record_id", "field", "check", "message")]
 ```
 
 The wrong sample size is flagged, and so is the fact that two records share
-one trial registration. Fields the model left empty come back as notes.
+one trial registration.
 
 ## Two reviewers
 
