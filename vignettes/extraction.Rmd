@@ -1,0 +1,261 @@
+---
+title: "Data extraction for systematic reviews and meta-analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Data extraction for systematic reviews and meta-analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+has_metafor <- requireNamespace("metafor", quietly = TRUE)
+```
+
+This vignette runs end to end without a network connection or a language
+model. The three trials below are made up for illustration, and the "model"
+is a small function that returns fixed answers. In a real review you pass
+your own model callback, and the text comes from `fulltext()` or
+`pdftext()`.
+
+The extraction workflow is:
+
+1. `form()` defines what to extract;
+2. `extract()` asks the model to fill the form, with a verbatim quote for
+   every value;
+3. `verify()` checks every value against the source text and basic rules;
+4. `agreement()` compares two independent extractions;
+5. `studies()` groups records that report the same trial;
+6. `effectsizes()` turns effect data into a table ready for `metafor` or
+   `meta`.
+
+```{r}
+library(medrev)
+```
+
+## Records
+
+`medrev()` builds a review from records you already have, such as a
+database export. Here the abstracts carry the data.
+
+```{r}
+recs <- data.frame(
+  pmid = c("100001", "100002", "100003"),
+  title = c(
+    "Drug X versus placebo in septic shock: the ALPHA randomised trial",
+    "Drug X in septic shock: one-year outcomes of the ALPHA trial",
+    "Drug X for severe sepsis in primary hospitals: the BETA trial"
+  ),
+  year = c(2021, 2023, 2022),
+  abstract = c(
+    paste("ALPHA (NCT01234567) was a multicentre randomised trial in 12 ICUs in France.",
+          "We enrolled 400 adults with septic shock between 2018 and 2020; 41% were female.",
+          "Patients received drug X (n = 200) or placebo (n = 200).",
+          "At 28 days, 50 of 200 patients in the drug X group and 70 of 200 in the placebo group had died",
+          "(odds ratio 0.62, 95% CI 0.40 to 0.95).",
+          "ICU length of stay was 8.1 days (SD 3.2) with drug X and 9.4 days (SD 3.6) with placebo."),
+    paste("This report gives one-year outcomes of the ALPHA trial (NCT01234567).",
+          "By one year, 82 of 200 patients given drug X and 97 of 200 given placebo had died."),
+    paste("BETA was a randomised trial in 6 hospitals in Morocco (NCT07654321).",
+          "A total of 240 adults with severe sepsis were assigned to drug X (n = 120) or usual care (n = 120).",
+          "Death at 28 days occurred in 30 of 120 and 36 of 120 patients respectively",
+          "(odds ratio 0.78, 95% CI 0.44 to 1.38).")
+  )
+)
+r <- medrev(recs, source = "illustration")
+r
+```
+
+## Chunks
+
+`chunk()` cuts each text into windows that are passed to the model. Here
+each abstract is one chunk.
+
+```{r}
+ch <- chunk(r, size = 200, which = "all")
+ch
+```
+
+## Forms
+
+A form lists the fields to extract, with their type. `form("sr")` holds
+study characteristics (one row per study); `form("ma")` holds effect data
+(one row per outcome, comparison and timepoint).
+
+```{r}
+form("sr")
+form("ma", measure = "binary")
+```
+
+Fields can be added or dropped:
+
+```{r}
+sr_form <- form("sr", add = c(dose = "drug X dose and schedule"),
+                drop = c("age", "funding", "period"))
+```
+
+## A scripted model
+
+Any function that takes a prompt and returns a string works as `llm`. This
+one looks up the record id in the prompt and replies with a fixed JSON
+answer. One value is wrong on purpose: the BETA sample size is given as 250
+while its quote says 240.
+
+```{r}
+q <- function(value, quote) list(value = value, quote = quote)
+
+answers_sr <- list(
+  "pmid:100001" = list(
+    design = q("RCT", "multicentre randomised trial"),
+    registration = q("NCT01234567", "ALPHA (NCT01234567)"),
+    country = q("France", "12 ICUs in France"),
+    setting = q("12 ICUs", "12 ICUs in France"),
+    population = q("adults with septic shock", "400 adults with septic shock"),
+    n_total = q(400, "We enrolled 400 adults"),
+    female_pct = q(41, "41% were female"),
+    intervention = q("drug X", "Patients received drug X"),
+    comparator = q("placebo", "or placebo"),
+    outcomes = q("28-day mortality; ICU length of stay", "At 28 days"),
+    follow_up = q("28 days", "At 28 days")),
+  "pmid:100002" = list(
+    design = q("RCT", "outcomes of the ALPHA trial"),
+    registration = q("NCT01234567", "ALPHA trial (NCT01234567)"),
+    follow_up = q("1 year", "By one year")),
+  "pmid:100003" = list(
+    design = q("RCT", "BETA was a randomised trial"),
+    registration = q("NCT07654321", "Morocco (NCT07654321)"),
+    country = q("Morocco", "6 hospitals in Morocco"),
+    n_total = q(250, "A total of 240 adults"),
+    intervention = q("drug X", "assigned to drug X"),
+    comparator = q("usual care", "or usual care"),
+    follow_up = q("28 days", "Death at 28 days"))
+)
+
+answers_ma <- list(
+  "pmid:100001" = list(
+    list(outcome = q("mortality", "had died"), timepoint = q("28 days", "At 28 days"),
+         n_e = q(200, "50 of 200"), n_c = q(200, "70 of 200"),
+         events_e = q(50, "50 of 200"), events_c = q(70, "70 of 200"),
+         measure = q("OR", "odds ratio 0.62"), estimate = q(0.62, "odds ratio 0.62"),
+         ci_low = q(0.40, "95% CI 0.40 to 0.95"), ci_high = q(0.95, "95% CI 0.40 to 0.95"))),
+  "pmid:100002" = list(
+    list(outcome = q("mortality", "had died"), timepoint = q("1 year", "By one year"),
+         n_e = q(200, "82 of 200"), n_c = q(200, "97 of 200"),
+         events_e = q(82, "82 of 200"), events_c = q(97, "97 of 200"))),
+  "pmid:100003" = list(
+    list(outcome = q("mortality", "Death at 28 days"), timepoint = q("28 days", "Death at 28 days"),
+         n_e = q(120, "drug X (n = 120)"), n_c = q(120, "usual care (n = 120)"),
+         events_e = q(30, "30 of 120"), events_c = q(36, "36 of 120"),
+         measure = q("OR", "odds ratio 0.78"), estimate = q(0.78, "odds ratio 0.78"),
+         ci_low = q(0.44, "95% CI 0.44 to 1.38"), ci_high = q(1.38, "95% CI 0.44 to 1.38")))
+)
+
+scripted_model <- function(answers, rows) {
+  function(prompt, ...) {
+    id <- names(answers)[vapply(names(answers), grepl, logical(1), x = prompt, fixed = TRUE)][1]
+    ans <- answers[[id]]
+    jsonlite::toJSON(if (rows) list(rows = ans) else ans, auto_unbox = TRUE)
+  }
+}
+```
+
+## Extraction for a systematic review
+
+```{r}
+sr <- extract(ch, scripted_model(answers_sr, rows = FALSE), form = sr_form,
+              model = "scripted")
+extractions(sr)[, c("record_id", "design", "registration", "country", "n_total", "follow_up")]
+```
+
+With `quotes = TRUE` every value comes with the text that supports it:
+
+```{r}
+extractions(sr, quotes = TRUE)[3, c("n_total", "n_total_quote")]
+```
+
+## Checking the values
+
+`verify()` runs deterministic checks. Quotes are looked up in the chunks
+the model saw, numbers are looked up in their quote, and effect data are
+checked for impossible values (events above the arm size, an estimate
+outside its interval, and so on).
+
+```{r}
+issues <- verify(sr, ch)
+issues[issues$severity != "note", c("record_id", "field", "check", "message")]
+```
+
+The wrong sample size is flagged, and so is the fact that two records share
+one trial registration. Fields the model left empty come back as notes.
+
+## Two reviewers
+
+Systematic reviews extract in duplicate. Run a second extraction (another
+model, another prompt, or a human's table loaded with the same form) and
+compare:
+
+```{r}
+answers_sr2 <- answers_sr
+answers_sr2[["pmid:100003"]]$n_total <- q(240, "A total of 240 adults")
+sr2 <- extract(ch, scripted_model(answers_sr2, rows = FALSE), form = sr_form,
+               model = "second")
+ag <- agreement(sr, sr2)
+ag[ag$status != "agree", c("record_id", "field", "value_a", "value_b", "status")]
+```
+
+## Records and studies
+
+The first two records report the same trial. `studies()` groups records by
+their registration number:
+
+```{r}
+st <- studies(sr)
+st
+```
+
+## Extraction for a meta-analysis
+
+The `"ma"` form returns as many rows per record as the paper reports.
+
+```{r}
+ma <- extract(ch, scripted_model(answers_ma, rows = TRUE),
+              form = form("ma", measure = "binary"), model = "scripted")
+verify(ma, ch)
+```
+
+`effectsizes()` computes one effect size per row, on the log scale for ratio
+measures. It uses the reported estimate and CI when available and falls back
+to the 2x2 counts otherwise; `derived` and `note` record which.
+
+```{r}
+es <- effectsizes(ma, study = st)
+es[, c("study", "timepoint", "measure", "estimate", "yi", "sei", "derived")]
+```
+
+## Pooling
+
+The table plugs into `metafor` (or `meta::metagen(TE = yi, seTE = sei)`).
+Pool the 28-day mortality rows, one per study:
+
+```{r, eval = has_metafor}
+d28 <- as.data.frame(es[es$timepoint == "28 days", ])
+fit <- metafor::rma(yi, vi, data = d28, method = "REML", slab = study)
+fit
+metafor::forest(fit, atransf = exp, xlab = "Odds ratio (28-day mortality)")
+```
+
+## Using a real model
+
+Replace the scripted model with any function that calls your model. For
+example with `ellmer`:
+
+```{r, eval = FALSE}
+chat <- ellmer::chat_openai(model = "gpt-4.1")
+my_model <- function(prompt, ...) chat$clone()$chat(prompt, echo = "none")
+
+ft <- pdftext(r, dir = "pdfs")          # or fulltext(r) for PMC open access
+ch <- chunk(r, fulltext = ft)
+sr <- extract(ch, my_model, form = form("sr"))
+ma <- extract(ch, my_model, form = form("ma"))
+verify(ma, ch)
+```
