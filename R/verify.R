@@ -200,7 +200,7 @@ mr_issue_empty <- function() {
 # Lowercase, unify dashes/minus, keep letters, digits and dots, single spaces.
 mr_norm_text <- function(x) {
   x <- tolower(x)
-  x <- gsub("[‐-―−]", "-", x)
+  x <- gsub("[\u2010-\u2015\u2212]", "-", x)
   x <- gsub("(?<=\\d),(?=\\d{3})", "", x, perl = TRUE)
   x <- gsub("[^a-z0-9.%-]+", " ", x)
   trimws(gsub("\\s+", " ", x))
@@ -209,7 +209,7 @@ mr_norm_text <- function(x) {
 # Does the number x appear in string s?
 mr_number_in <- function(x, s) {
   s <- gsub("(?<=\\d),(?=\\d{3})", "", s, perl = TRUE)
-  s <- gsub("−", "-", s)
+  s <- gsub("\u2212", "-", s)
   nums <- suppressWarnings(as.numeric(regmatches(s, gregexpr("\\d*\\.?\\d+(?:[eE][-+]?\\d+)?", s, perl = TRUE))[[1]]))
   nums <- nums[!is.na(nums)]
   any(abs(nums - abs(x)) <= 1e-9 * max(1, abs(x)))

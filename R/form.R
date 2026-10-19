@@ -231,7 +231,7 @@ mr_coerce_value <- function(v, kind, choices = "") {
 # First number in a string ("1,204 (52%)" -> 1204; "<0.001" -> 0.001).
 mr_first_number <- function(s) {
   s <- gsub("(?<=\\d),(?=\\d{3})", "", s, perl = TRUE)
-  s <- gsub("−", "-", s)
+  s <- gsub("\u2212", "-", s)
   m <- regmatches(s, regexpr("-?\\d*\\.?\\d+(?:[eE][-+]?\\d+)?", s, perl = TRUE))
   if (!length(m)) return(NA_real_)
   suppressWarnings(as.numeric(m))
