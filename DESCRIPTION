@@ -37,6 +37,7 @@ Imports:
     xml2
 Suggests:
     knitr,
+    metafor,
     rmarkdown,
     testthat (>= 3.0.0),
     withr
