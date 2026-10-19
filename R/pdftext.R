@@ -15,7 +15,7 @@
 #' @param dir Directory holding the PDFs.
 #' @param name File name template used to find each record's PDF, as in
 #'   [fetch()] (`{pmid}`, `{doi}`, `{year}`, `{id}`, ...); `.pdf` is
-#'   appended.
+#'   appended. Records missing a template field are looked up by record id.
 #' @param files Optional named character vector `c(record_id = "path.pdf")`
 #'   that overrides `dir` / `name`, for PDFs with arbitrary file names.
 #' @param which Which records to read: `"included"`, `"oa"`, or `"all"`.
@@ -51,7 +51,7 @@ pdftext <- function(x, dir = "medrev_pdfs", name = "{pmid}", files = NULL,
   for (i in seq_len(nrow(df))) {
     cli::cli_progress_update()
     rec <- as.list(df[i, ])
-    file <- if (!is.null(files)) unname(files[rec$id]) else file.path(dir, paste0(mr_render_name(name, rec), ".pdf"))
+    file <- if (!is.null(files)) unname(files[rec$id]) else mr_pdf_file(dir, name, rec)
     text <- NA_character_
     status <- "missing"
     if (!is.na(file) && file.exists(file)) {

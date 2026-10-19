@@ -16,6 +16,15 @@ test_that("mr_render_name fills templates from a record row", {
   expect_equal(medrev:::mr_render_name("{missing}", row), "NA")
 })
 
+test_that("mr_pdf_file falls back to the record id when a field is missing", {
+  a <- list(id = "pmid:9", pmid = "9")
+  b <- list(id = "doi:10.1/x", pmid = NA)
+  c <- list(id = "doi:10.2/y", pmid = "")
+  expect_equal(medrev:::mr_pdf_file("d", "{pmid}", a), file.path("d", "9.pdf"))
+  expect_equal(medrev:::mr_pdf_file("d", "{pmid}", b), file.path("d", "doi_10.1_x.pdf"))
+  expect_equal(medrev:::mr_pdf_file("d", "{pmid}", c), file.path("d", "doi_10.2_y.pdf"))
+})
+
 test_that("mr_make_id prefers doi then pmid then pmcid then title", {
   expect_equal(medrev:::mr_make_id("10.1/X", "9", "PMC9", "t"), "doi:10.1/x")
   expect_equal(medrev:::mr_make_id(NA, "9", "PMC9", "t"), "pmid:9")

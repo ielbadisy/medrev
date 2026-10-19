@@ -70,6 +70,18 @@ mr_render_name <- function(template, row) {
   out
 }
 
+# PDF path for one record. When a template field is missing for the record
+# (e.g. no PMID), the record id is used instead so files never collide.
+mr_pdf_file <- function(dir, template, row) {
+  fields <- gsub("[{}]", "", regmatches(template, gregexpr("\\{[a-zA-Z0-9_]+\\}", template))[[1]])
+  missing <- vapply(fields, function(k) {
+    v <- if (k %in% names(row)) row[[k]] else NA
+    length(v) == 0L || is.na(v[[1]]) || !nzchar(as.character(v[[1]]))
+  }, logical(1))
+  stem <- if (any(missing) && !is.null(row$id) && !is.na(row$id)) mr_slug(row$id) else mr_render_name(template, row)
+  file.path(dir, paste0(stem, ".pdf"))
+}
+
 # Coerce a scalar, vector, or file path into a character vector of ids.
 mr_as_ids <- function(x) {
   if (length(x) == 1L && is.character(x) && file.exists(x)) {

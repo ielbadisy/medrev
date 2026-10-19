@@ -20,6 +20,7 @@
 #'   `"all"`.
 #' @param name File-name template; `{field}` placeholders are filled from the
 #'   record (`{pmid}`, `{doi}`, `{year}`, `{id}`, ...). `.pdf` is appended.
+#'   Records missing a template field are saved under their record id.
 #' @param overwrite Re-download files that already exist.
 #' @param limit Optional cap on the number of records to download; the first
 #'   `limit` selected records (those with a resolved link first) are kept.
@@ -74,7 +75,7 @@ fetch <- function(x, dir = "medrev_pdfs", which = c("included", "oa", "all"),
     cli::cli_progress_update()
     rec <- as.list(df[i, ])
     url <- rec$pdf_url
-    file <- file.path(dir, paste0(mr_render_name(name, rec), ".pdf"))
+    file <- mr_pdf_file(dir, name, rec)
     status <- NA_character_; bytes <- NA_integer_
 
     if (is.na(url) || !nzchar(url)) {

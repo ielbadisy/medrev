@@ -4,6 +4,10 @@
   notes the model adds after the JSON. Before, such replies were not parsed.
 * `verify()` and the number coercion in `extract()` read decimals written with
   a middle dot (`3·53`, as in The Lancet) as decimal points.
+* `fetch()` and `pdftext()` save and look up a record's PDF under its record
+  id when the file-name template uses a field the record lacks (for example
+  `{pmid}` for a record without a PMID). Before, all such records were
+  written to `NA.pdf` and overwrote each other.
 
 # medrev 0.8.0
 

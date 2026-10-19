@@ -27,7 +27,8 @@ nothing has been screened), \code{"oa"} (those plus a resolved OA link), or
 \code{"all"}.}
 
 \item{name}{File-name template; \code{{field}} placeholders are filled from the
-record (\code{{pmid}}, \code{{doi}}, \code{{year}}, \code{{id}}, ...). \code{.pdf} is appended.}
+record (\code{{pmid}}, \code{{doi}}, \code{{year}}, \code{{id}}, ...). \code{.pdf} is appended.
+Records missing a template field are saved under their record id.}
 
 \item{overwrite}{Re-download files that already exist.}
 

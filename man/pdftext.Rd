@@ -20,7 +20,7 @@ pdftext(
 
 \item{name}{File name template used to find each record's PDF, as in
 \code{\link[=fetch]{fetch()}} (\code{{pmid}}, \code{{doi}}, \code{{year}}, \code{{id}}, ...); \code{.pdf} is
-appended.}
+appended. Records missing a template field are looked up by record id.}
 
 \item{files}{Optional named character vector \code{c(record_id = "path.pdf")}
 that overrides \code{dir} / \code{name}, for PDFs with arbitrary file names.}
