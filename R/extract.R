@@ -113,9 +113,8 @@ mr_to_json <- function(x) {
 # Parse a model response against a form. Returns a list of rows, each a named
 # list field -> list(value, quote), or NULL when nothing can be recovered.
 mr_parse_form <- function(txt, f) {
-  s <- gsub("```[a-zA-Z]*", "", txt)
-  m <- regmatches(s, regexpr("[\\{\\[].*[\\}\\]]", s, perl = TRUE))
-  if (!length(m)) return(NULL)
+  m <- mr_json_block(txt)
+  if (is.null(m)) return(NULL)
   obj <- tryCatch(jsonlite::fromJSON(m, simplifyVector = FALSE), error = function(e) NULL)
   if (is.null(obj)) return(NULL)
   rows_form <- identical(attr(f, "unit"), "row")
@@ -131,6 +130,42 @@ mr_parse_form <- function(txt, f) {
     return(if (rows_form && (identical(obj, list()) || identical(obj$rows, list()))) list() else NULL)
   }
   lapply(objs, function(o) mr_parse_fields(o, f))
+}
+
+# The first balanced JSON object or array in a response, ignoring code fences
+# and any text before or after it (JSON may span several lines). Arrays count
+# only when they hold objects, so a "[1]" in prose is skipped. NULL if none.
+mr_json_block <- function(txt) {
+  if (is.null(txt) || is.na(txt)) return(NULL)
+  s <- gsub("```[a-zA-Z]*", "", txt)
+  ch <- strsplit(s, "", fixed = TRUE)[[1]]
+  start <- which(ch %in% c("{", "["))
+  for (i in start) {
+    depth <- 0L
+    in_str <- FALSE
+    esc <- FALSE
+    for (j in i:length(ch)) {
+      c1 <- ch[[j]]
+      if (in_str) {
+        if (esc) esc <- FALSE
+        else if (c1 == "\\") esc <- TRUE
+        else if (c1 == "\"") in_str <- FALSE
+        next
+      }
+      if (c1 == "\"") in_str <- TRUE
+      else if (c1 %in% c("{", "[")) depth <- depth + 1L
+      else if (c1 %in% c("}", "]")) {
+        depth <- depth - 1L
+        if (depth == 0L) {
+          block <- paste(ch[i:j], collapse = "")
+          is_obj <- ch[[i]] == "{" || grepl("{", block, fixed = TRUE)
+          if (is_obj && jsonlite::validate(block)) return(block)
+          break
+        }
+      }
+    }
+  }
+  NULL
 }
 
 mr_parse_fields <- function(o, f) {

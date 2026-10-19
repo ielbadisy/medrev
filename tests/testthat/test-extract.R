@@ -9,6 +9,18 @@ test_that("mr_parse_form recovers a JSON object, code fences and prose notwithst
   expect_true(is.na(got$n$quote))
 })
 
+test_that("mr_parse_form reads pretty-printed JSON followed by notes", {
+  f <- medrev:::mr_as_form(fields3)
+  txt <- paste0("See [1] below.\n```json\n{\n  \"design\": \"RCT\",\n  \"n\": 100,\n",
+                "  \"outcome\": \"a {braced} label\"\n}\n```\n\nNotes:\n- n is 49 + 51 (OR 3.53).")
+  got <- medrev:::mr_parse_form(txt, f)[[1]]
+  expect_equal(got$n$value, "100")
+  expect_equal(got$outcome$value, "a {braced} label")
+  rows <- medrev:::mr_json_block("x [\n {\"a\": 1},\n {\"a\": 2}\n] y")
+  expect_length(jsonlite::fromJSON(rows, simplifyVector = FALSE), 2)
+  expect_null(medrev:::mr_json_block("only [1] and {broken"))
+})
+
 test_that("mr_parse_form returns NA per missing key and NULL when no object", {
   f <- medrev:::mr_as_form(fields3)
   got <- medrev:::mr_parse_form('{"design": "cohort"}', f)[[1]]
