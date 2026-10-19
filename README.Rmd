@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 
 `medrev` turns a research question into a folder of open-access PDFs plus the
 audit tables a literature review needs. It searches the literature through
-[Europe PubMed Central](https://europepmc.org/RestfulWebService) (which indexes
+[Europe PubMed Central](https://dev.europepmc.org/RestfulWebService) (which indexes
 all of PubMed and MEDLINE), de-duplicates, tracks screening decisions, resolves
 open-access full text, and downloads it. An optional model-assisted layer
 extracts study characteristics and effect data with a verbatim quote for every

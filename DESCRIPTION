@@ -12,7 +12,7 @@ Authors@R: c(
 Description: An end-to-end workflow for topic-driven biomedical literature
     reviews. From a research question or a set of identifiers it searches the
     literature through the Europe PubMed Central REST service
-    <https://europepmc.org/RestfulWebService>, which indexes all of 'PubMed'
+    <https://dev.europepmc.org/RestfulWebService>, which indexes all of 'PubMed'
     and 'MEDLINE', into a tidy record table with a stable schema. Records are
     de-duplicated, screening decisions are tracked with reasons, and every
     stage is logged so a 'PRISMA'-style flow of counts can be derived.

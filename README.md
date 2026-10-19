@@ -13,15 +13,15 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 `medrev` turns a research question into a folder of open-access PDFs
 plus the audit tables a literature review needs. It searches the
 literature through [Europe PubMed
-Central](https://europepmc.org/RestfulWebService) (which indexes all of
-PubMed and MEDLINE), de-duplicates, tracks screening decisions, resolves
-open-access full text, and downloads it. An optional model-assisted
-layer extracts study characteristics and effect data with a verbatim
-quote for every value, checks them against the source text, and returns
-an effect-size table ready for `metafor` or `meta`. Record tables are
-[`basetable`](https://github.com/ielbadisy/basetable) objects. Only
-open-access content is fetched; closed-access hits are reported, never
-scraped.
+Central](https://dev.europepmc.org/RestfulWebService) (which indexes all
+of PubMed and MEDLINE), de-duplicates, tracks screening decisions,
+resolves open-access full text, and downloads it. An optional
+model-assisted layer extracts study characteristics and effect data with
+a verbatim quote for every value, checks them against the source text,
+and returns an effect-size table ready for `metafor` or `meta`. Record
+tables are [`basetable`](https://github.com/ielbadisy/basetable)
+objects. Only open-access content is fetched; closed-access hits are
+reported, never scraped.
 
 ## Installation
 

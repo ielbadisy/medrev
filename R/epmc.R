@@ -1,5 +1,5 @@
 # Europe PMC search + record normalisation ----------------------------------
-# Docs: https://europepmc.org/RestfulWebService
+# Docs: https://dev.europepmc.org/RestfulWebService
 
 # Map one Europe PMC "core" result to a one-row data.frame in medrev's schema.
 mr_epmc_row <- function(rec) {
