@@ -7,6 +7,12 @@
 #' PDF (an HTML paywall or error page) is rejected and logged as a failure,
 #' not saved.
 #'
+#' Europe PMC's PDF links are behind a browser check, so for those records
+#' the same article is first taken from the PMC open-access bucket published
+#' by NCBI (<https://pmc.ncbi.nlm.nih.gov/tools/pmcaws/>), falling back to
+#' the Europe PMC link. The `pdf_url` column of the log gives the link that
+#' was used.
+#'
 #' @param x A `medrev` object.
 #' @param dir Directory to write PDFs into; created if needed.
 #' @param which Which records to fetch: `"included"` (screened-in, or all when
@@ -76,20 +82,12 @@ fetch <- function(x, dir = "medrev_pdfs", which = c("included", "oa", "all"),
     } else if (file.exists(file) && !overwrite) {
       status <- "exists"; bytes <- as.integer(file.info(file)$size)
     } else {
-      ok <- tryCatch({
-        req <- httr2::request(url) |>
-          httr2::req_user_agent(mr_user_agent(email)) |>
-          httr2::req_timeout(120) |>
-          httr2::req_retry(max_tries = 3,
-                           is_transient = function(resp) httr2::resp_status(resp) %in% c(429, 500, 502, 503, 504)) |>
-          httr2::req_error(is_error = function(resp) FALSE)
-        resp <- httr2::req_perform(req)
-        if (httr2::resp_status(resp) >= 400L || !mr_is_pdf(resp)) FALSE
-        else {
-          writeBin(httr2::resp_body_raw(resp), file)
-          TRUE
-        }
-      }, error = function(e) FALSE)
+      tried <- c(mr_pmc_cloud_pdf(rec, email), url)
+      ok <- FALSE
+      for (u in tried) {
+        ok <- mr_download_pdf(u, file, email)
+        if (ok) { url <- u; break }
+      }
       if (ok) {
         status <- "downloaded"; bytes <- as.integer(file.info(file)$size)
       } else {
@@ -136,3 +134,55 @@ mr_download_log <- function(log) {
   }
   basetable::as_basetable(log[, cols, drop = FALSE])
 }
+
+# Download one PDF to `file`. TRUE on success.
+mr_download_pdf <- function(url, file, email) {
+  tryCatch({
+    req <- httr2::request(url) |>
+      httr2::req_user_agent(mr_user_agent(email)) |>
+      httr2::req_timeout(120) |>
+      httr2::req_retry(max_tries = 3,
+                       is_transient = function(resp) httr2::resp_status(resp) %in% c(429, 500, 502, 503, 504)) |>
+      httr2::req_error(is_error = function(resp) FALSE)
+    resp <- httr2::req_perform(req)
+    if (httr2::resp_status(resp) >= 400L || !mr_is_pdf(resp)) FALSE
+    else {
+      writeBin(httr2::resp_body_raw(resp), file)
+      TRUE
+    }
+  }, error = function(e) FALSE)
+}
+
+# Europe PMC's PDF render links sit behind a browser check, so for those
+# records try the same article in the PMC open-access bucket that NCBI
+# publishes (https://pmc.ncbi.nlm.nih.gov/tools/pmcaws/), latest version.
+# Returns a URL, or NULL when the article is not in the bucket.
+mr_pmc_cloud_pdf <- function(rec, email) {
+  url <- rec$pdf_url %||% NA_character_
+  if (is.na(url) || !grepl("europepmc\\.org/(articles|api)", url)) return(NULL)
+  pmcid <- rec$pmcid %||% NA_character_
+  if (is.na(pmcid) || !nzchar(pmcid)) {
+    m <- regmatches(url, regexpr("PMC[0-9]+", url))
+    pmcid <- if (length(m)) m else NA_character_
+  }
+  if (is.na(pmcid)) return(NULL)
+  pmcid <- toupper(pmcid)
+  if (!grepl("^PMC", pmcid)) pmcid <- paste0("PMC", pmcid)
+  tryCatch({
+    resp <- httr2::request(.mr_pmc_bucket) |>
+      httr2::req_url_query(`list-type` = 2, prefix = paste0(pmcid, "."), delimiter = "/") |>
+      httr2::req_user_agent(mr_user_agent(email)) |>
+      httr2::req_timeout(30) |>
+      httr2::req_error(is_error = function(resp) FALSE) |>
+      httr2::req_perform()
+    if (httr2::resp_status(resp) >= 400L) return(NULL)
+    doc <- xml2::read_xml(httr2::resp_body_string(resp))
+    pre <- xml2::xml_text(xml2::xml_find_all(doc, "//*[local-name()='CommonPrefixes']/*[local-name()='Prefix']"))
+    pre <- sub("/$", "", pre[grepl(paste0("^", pmcid, "\\.[0-9]+/$"), pre)])
+    if (!length(pre)) return(NULL)
+    v <- pre[which.max(as.integer(sub(".*\\.", "", pre)))]
+    sprintf("%s/%s/%s.pdf", .mr_pmc_bucket, v, v)
+  }, error = function(e) NULL)
+}
+
+.mr_pmc_bucket <- "https://pmc-oa-opendata.s3.amazonaws.com"

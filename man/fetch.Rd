@@ -53,6 +53,13 @@ downloads one file per selected record. A response that is not actually a
 PDF (an HTML paywall or error page) is rejected and logged as a failure,
 not saved.
 }
+\details{
+Europe PMC's PDF links are behind a browser check, so for those records
+the same article is first taken from the PMC open-access bucket published
+by NCBI (\url{https://pmc.ncbi.nlm.nih.gov/tools/pmcaws/}), falling back to
+the Europe PMC link. The \code{pdf_url} column of the log gives the link that
+was used.
+}
 \examples{
 \dontrun{
 r <- pubmed("crispr off-target", n = 40, years = 2019)

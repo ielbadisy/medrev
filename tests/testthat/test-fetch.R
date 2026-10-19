@@ -54,3 +54,15 @@ test_that("errors file lists unfetched records", {
   expect_equal(nrow(bad), 5L)
   expect_true(all(bad$status == "failed"))
 })
+
+test_that("the PMC bucket is only tried for Europe PMC links", {
+  expect_null(medrev:::mr_pmc_cloud_pdf(list(pdf_url = "https://x.org/a.pdf", pmcid = "PMC1"), NULL))
+  expect_null(medrev:::mr_pmc_cloud_pdf(list(pdf_url = NA_character_, pmcid = "PMC1"), NULL))
+})
+
+test_that("Europe PMC links resolve to the PMC bucket", {
+  skip_on_cran()
+  skip_if_offline("pmc-oa-opendata.s3.amazonaws.com")
+  u <- medrev:::mr_pmc_cloud_pdf(list(pdf_url = "https://europepmc.org/articles/PMC12796369?pdf=render"), NULL)
+  expect_match(u, "^https://pmc-oa-opendata\\.s3\\.amazonaws\\.com/PMC12796369\\.[0-9]+/PMC12796369\\.[0-9]+\\.pdf$")
+})
