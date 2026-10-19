@@ -115,7 +115,7 @@ prisma(r)
 bibliography(r, "sepsis.ris", which = "included")   # .ris / .bib / .csv by extension
 ```
 
-## 8. Model-assisted synthesis (optional)
+## 8. Data extraction and synthesis (optional)
 
 The enrichment verbs take a **model callback**: any function that accepts a
 prompt string and returns the model's text response. `medrev` builds the
@@ -132,8 +132,8 @@ claude <- function(prompt, ...) {
       "anthropic-version" = "2023-06-01"
     ) |>
     httr2::req_body_json(list(
-      model = "claude-opus-5",
-      max_tokens = 1024,
+      model = "claude-opus-5-5",
+      max_tokens = 4096,
       messages = list(list(role = "user", content = prompt))
     )) |>
     httr2::req_retry(max_tries = 3) |>
@@ -146,20 +146,27 @@ claude <- function(prompt, ...) {
 move.
 
 ```{r}
-ch  <- chunk(r, which = "included")            # abstracts; pass fulltext(r) for full text
-sm  <- summarize(ch, llm = claude)             # one grounded summary per study
-ex  <- extract(ch, llm = claude,
-               fields = c(design  = "study design",
-                          n       = "total sample size",
-                          outcome = "primary outcome",
-                          auc     = "reported discrimination (AUC/C-index)"))
-extractions(ex)                                # one row per study, a column per field
-syn <- synthesize(c(sm, ex), llm = claude)     # cross-study synthesis
+ft  <- pdftext(r, dir = "sepsis_pdfs", name = "{year}_{pmid}")   # text of the PDFs from step 6
+ch  <- chunk(r, which = "included", fulltext = ft)               # abstracts where there is no PDF
 
-review_brief(r, insights = c(sm, ex, syn),
+sr  <- extract(ch, llm = claude,                 # study characteristics
+               form = form("sr", add = c(auc = "reported discrimination (AUC/C-index)")))
+extractions(sr, quotes = TRUE)                   # one row per study, value + supporting quote
+verify(sr, ch)                                   # quotes found in the text? numbers in their quote?
+
+sm  <- summarize(ch, llm = claude)               # one grounded summary per study
+syn <- synthesize(c(sm, sr), llm = claude)       # cross-study synthesis
+
+review_brief(r, insights = c(sm, sr, syn),
              title = "Interpretable ML for sepsis prognosis: rapid brief",
              file  = "brief.md")
 ```
+
+For a meta-analysis, `form("ma")` extracts effect data (one row per outcome,
+comparison and timepoint) and `effectsizes()` turns it into `yi` / `sei`
+ready for `metafor` or `meta`. `vignette("extraction", package = "medrev")`
+walks through the full loop, with double extraction and `agreement()`, on
+data that run offline.
 
 The brief is Markdown: the search log, the PRISMA flow, the synthesis, a
 per-study block (citation plus its summary and extracted fields), and a
