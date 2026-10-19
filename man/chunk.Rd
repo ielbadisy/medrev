@@ -21,9 +21,9 @@ chunk(
 
 \item{which}{Which records to chunk: \code{"included"}, \code{"oa"}, or \code{"all"}.}
 
-\item{fulltext}{Optional \code{basetable} from \code{\link[=fulltext]{fulltext()}}; where it has an
-\code{"available"} row for a record, that text is chunked instead of the
-abstract.}
+\item{fulltext}{Optional \code{basetable} from \code{\link[=fulltext]{fulltext()}} or \code{\link[=pdftext]{pdftext()}}, or
+a list of them; where one has an \code{"available"} row for a record, that
+text is chunked instead of the abstract (earlier list elements win).}
 }
 \value{
 A \code{medrev_chunks} object: a \code{basetable} with columns \code{record_id},
@@ -32,7 +32,7 @@ A \code{medrev_chunks} object: a \code{basetable} with columns \code{record_id},
 \description{
 Breaks each selected record's text into word windows for downstream
 model-assisted steps. By default the text is the abstract; pass a
-\code{\link[=fulltext]{fulltext()}} result to use full text where it is available.
+\code{\link[=fulltext]{fulltext()}} or \code{\link[=pdftext]{pdftext()}} result to use full text where it is available.
 }
 \examples{
 \dontrun{

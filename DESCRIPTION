@@ -38,6 +38,7 @@ Imports:
 Suggests:
     knitr,
     metafor,
+    pdftools,
     rmarkdown,
     testthat (>= 3.0.0),
     withr

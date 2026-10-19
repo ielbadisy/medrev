@@ -8,15 +8,15 @@
 #'
 #' Breaks each selected record's text into word windows for downstream
 #' model-assisted steps. By default the text is the abstract; pass a
-#' [fulltext()] result to use full text where it is available.
+#' [fulltext()] or [pdftext()] result to use full text where it is available.
 #'
 #' @param x A `medrev` object.
 #' @param size Window length in words.
 #' @param overlap Words shared between consecutive windows (`< size`).
 #' @param which Which records to chunk: `"included"`, `"oa"`, or `"all"`.
-#' @param fulltext Optional `basetable` from [fulltext()]; where it has an
-#'   `"available"` row for a record, that text is chunked instead of the
-#'   abstract.
+#' @param fulltext Optional `basetable` from [fulltext()] or [pdftext()], or
+#'   a list of them; where one has an `"available"` row for a record, that
+#'   text is chunked instead of the abstract (earlier list elements win).
 #'
 #' @return A `medrev_chunks` object: a `basetable` with columns `record_id`,
 #'   `chunk_id`, `seq`, `text`, `n_words`, `tokens_est`, `source`.
@@ -93,9 +93,18 @@ mr_windows <- function(text, size, overlap) {
   out
 }
 
-# Named list: record id -> full-text string, from a fulltext() result.
+# Named list: record id -> full-text string, from a fulltext() / pdftext()
+# result or a list of them (the first available text per record wins).
 mr_fulltext_lookup <- function(fulltext) {
   if (is.null(fulltext)) return(list())
+  if (!is.data.frame(fulltext) && is.list(fulltext)) {
+    out <- list()
+    for (ft in rev(fulltext)) {
+      l <- mr_fulltext_lookup(ft)
+      out[names(l)] <- l
+    }
+    return(out)
+  }
   d <- as.data.frame(fulltext)
   tcol <- if ("text" %in% names(d)) "text" else if ("xml" %in% names(d)) "xml" else NULL
   if (is.null(tcol) || !"id" %in% names(d)) return(list())
