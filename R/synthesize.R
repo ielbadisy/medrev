@@ -37,14 +37,14 @@ synthesize <- function(insights, llm, prompt = NULL, model = "user-callback") {
   }
 
   d <- as.data.frame(insights)
-  d <- d[d$type %in% c("summary", "extraction"), , drop = FALSE]
+  d <- d[d$type %in% c("summary", "extraction", "effect"), , drop = FALSE]
   if (!nrow(d)) {
     cli::cli_alert_warning("No summary or extraction insights to synthesise.")
     return(mr_empty_insights())
   }
 
   notes <- vapply(seq_len(nrow(d)), function(i) {
-    body <- if (!is.na(d$text[[i]])) d$text[[i]] else d$data[[i]]
+    body <- if (!is.na(d$text[[i]])) d$text[[i]] else mr_compact_data(d$data[[i]], d$type[[i]])
     rid <- d$record_id[[i]]
     sprintf("- (%s) %s", if (is.na(rid)) "study" else rid, body)
   }, character(1))
@@ -59,4 +59,17 @@ synthesize <- function(insights, llm, prompt = NULL, model = "user-callback") {
     data = NA_character_, model = model, at = mr_now(),
     stringsAsFactors = FALSE
   ))
+}
+
+# Extraction JSON -> "field: value; ..." (quotes and empty fields dropped).
+mr_compact_data <- function(json, type) {
+  objs <- mr_insight_rows(json, type)
+  if (!length(objs)) return(if (type == "effect") "no effect data reported" else "nothing extracted")
+  parts <- vapply(objs, function(o) {
+    flat <- mr_flatten_obj(o)
+    keep <- !vapply(flat, function(v) is.na(v[[1]]), logical(1))
+    paste(sprintf("%s: %s", names(flat)[keep], vapply(flat[keep], function(v) as.character(v[[1]]), "")),
+          collapse = "; ")
+  }, character(1))
+  paste(parts, collapse = " | ")
 }

@@ -4,14 +4,22 @@
 \alias{extractions}
 \title{Flatten extraction insights to a table}
 \usage{
-extractions(insights)
+extractions(insights, type = c("extraction", "effect"), quotes = FALSE)
 }
 \arguments{
 \item{insights}{A \code{medrev_insights} object from \code{\link[=extract]{extract()}}.}
+
+\item{type}{\code{"extraction"} (one row per study, from one-row forms such as
+\code{form("sr")}) or \code{"effect"} (one row per extracted effect row, from
+\code{form("ma")}).}
+
+\item{quotes}{If \code{TRUE}, add a \verb{<field>_quote} column next to each field
+with the supporting quote.}
 }
 \value{
-A \code{basetable} with \code{record_id}, \code{insight_id}, and one column per
-extracted field. Unparsed rows have \code{NA} fields.
+A \code{basetable} with \code{record_id}, \code{insight_id} (and \code{row} for
+effects), and one column per field. Number and integer fields are
+numeric. Unparsed rows have \code{NA} fields.
 }
 \description{
 Flatten extraction insights to a table

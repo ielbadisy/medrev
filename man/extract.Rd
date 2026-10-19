@@ -2,15 +2,16 @@
 % Please edit documentation in R/extract.R
 \name{extract}
 \alias{extract}
-\title{Extract structured fields from evidence with a model}
+\title{Extract structured data from evidence with a model}
 \usage{
 extract(
   chunks,
   llm,
-  fields,
+  form = NULL,
   prompt = NULL,
   per = c("record", "all"),
-  model = "user-callback"
+  model = "user-callback",
+  fields = NULL
 )
 }
 \arguments{
@@ -18,32 +19,41 @@ extract(
 
 \item{llm}{A model callback: \verb{function(prompt, ...)} returning a string.}
 
-\item{fields}{A named character vector: names are the JSON keys to return,
-values are short descriptions of what each key means, e.g.
+\item{form}{A \code{\link[=form]{form()}}, or a named character vector of free-text fields
+(names are the keys, values describe each key), e.g.
 \code{c(design = "study design", n = "total sample size")}.}
 
 \item{prompt}{Optional prompt template; must contain \code{{evidence}} and
 \code{{schema}} placeholders.}
 
-\item{per}{\code{"record"} (one object per record) or \code{"all"}.}
+\item{per}{\code{"record"} (one call per record) or \code{"all"} (one call over all
+chunks).}
 
 \item{model}{A short label recorded in the \code{model} column.}
+
+\item{fields}{Deprecated alias for \code{form} (a named character vector).}
 }
 \value{
 A \code{medrev_insights} object. Rows whose response could not be parsed
-as JSON keep the raw text in \code{text} and \code{NA} in \code{data}.
+keep the raw text in \code{text} and \code{NA} in \code{data}.
 }
 \description{
-Asks the model to return a JSON object with a fixed set of keys, using only
-the chunk text. Parsed results are stored as \code{type == "extraction"} insights
-(the JSON in the \code{data} column); \code{\link[=extractions]{extractions()}} flattens them to one row
-per record with a column per field.
+Fills in a data extraction form for each record: study characteristics
+for a systematic review (\code{form("sr")}), effect data for a meta-analysis
+(\code{form("ma")}), or any custom set of fields. The model must use only the
+chunk text and return, for every field, a value and the verbatim quote
+that supports it. Values are coerced to the field kind (number, integer,
+choice, text) and stored as JSON in a \code{medrev_insights} table:
+\code{type == "extraction"} for one-row-per-study forms and \code{type == "effect"}
+for many-rows-per-study forms. \code{\link[=extractions]{extractions()}} and \code{\link[=effectsizes]{effectsizes()}} turn
+them into tables, \code{\link[=verify]{verify()}} checks them against the source text.
 }
 \examples{
 \dontrun{
-ins <- extract(chunk(r), llm = my_model,
-               fields = c(design = "study design", n = "sample size",
-                          outcome = "primary outcome"))
-extractions(ins)
+ch <- chunk(r, fulltext = fulltext(r))
+sr <- extract(ch, llm = my_model, form = form("sr"))
+extractions(sr)
+ma <- extract(ch, llm = my_model, form = form("ma", measure = "binary"))
+effectsizes(ma)
 }
 }

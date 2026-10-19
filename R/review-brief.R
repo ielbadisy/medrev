@@ -86,11 +86,12 @@ mr_brief_studies <- function(inc, ins) {
     if (length(s) && !is.na(s[[1]])) out <- paste0(out, "\n\n", s[[1]])
     e <- ex$data[ex$record_id == rid]
     if (length(e) && !is.na(e[[1]])) {
-      obj <- tryCatch(jsonlite::fromJSON(e[[1]]), error = function(z) NULL)
+      obj <- mr_insight_rows(e[[1]], "extraction")
       if (length(obj)) {
-        kv <- paste(sprintf("- **%s:** %s", names(obj),
-                            vapply(obj, function(v) if (is.null(v) || all(is.na(v))) "n/r"
-                                   else paste(as.character(v), collapse = "; "), character(1))),
+        flat <- mr_flatten_obj(obj[[1]])
+        kv <- paste(sprintf("- **%s:** %s", names(flat),
+                            vapply(flat, function(v) if (is.na(v)) "n/r" else as.character(v),
+                                   character(1))),
                     collapse = "\n")
         out <- paste0(out, "\n\n", kv)
       }

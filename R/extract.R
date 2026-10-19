@@ -1,49 +1,59 @@
 # extract(): model-assisted structured extraction ------------------
 
-#' Extract structured fields from evidence with a model
+#' Extract structured data from evidence with a model
 #'
-#' Asks the model to return a JSON object with a fixed set of keys, using only
-#' the chunk text. Parsed results are stored as `type == "extraction"` insights
-#' (the JSON in the `data` column); [extractions()] flattens them to one row
-#' per record with a column per field.
+#' Fills in a data extraction form for each record: study characteristics
+#' for a systematic review (`form("sr")`), effect data for a meta-analysis
+#' (`form("ma")`), or any custom set of fields. The model must use only the
+#' chunk text and return, for every field, a value and the verbatim quote
+#' that supports it. Values are coerced to the field kind (number, integer,
+#' choice, text) and stored as JSON in a `medrev_insights` table:
+#' `type == "extraction"` for one-row-per-study forms and `type == "effect"`
+#' for many-rows-per-study forms. [extractions()] and [effectsizes()] turn
+#' them into tables, [verify()] checks them against the source text.
 #'
 #' @param chunks A `medrev_chunks` object from [chunk()].
 #' @param llm A model callback: `function(prompt, ...)` returning a string.
-#' @param fields A named character vector: names are the JSON keys to return,
-#'   values are short descriptions of what each key means, e.g.
+#' @param form A [form()], or a named character vector of free-text fields
+#'   (names are the keys, values describe each key), e.g.
 #'   `c(design = "study design", n = "total sample size")`.
 #' @param prompt Optional prompt template; must contain `{evidence}` and
 #'   `{schema}` placeholders.
-#' @param per `"record"` (one object per record) or `"all"`.
+#' @param per `"record"` (one call per record) or `"all"` (one call over all
+#'   chunks).
 #' @param model A short label recorded in the `model` column.
+#' @param fields Deprecated alias for `form` (a named character vector).
 #'
 #' @return A `medrev_insights` object. Rows whose response could not be parsed
-#'   as JSON keep the raw text in `text` and `NA` in `data`.
+#'   keep the raw text in `text` and `NA` in `data`.
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' ins <- extract(chunk(r), llm = my_model,
-#'                fields = c(design = "study design", n = "sample size",
-#'                           outcome = "primary outcome"))
-#' extractions(ins)
+#' ch <- chunk(r, fulltext = fulltext(r))
+#' sr <- extract(ch, llm = my_model, form = form("sr"))
+#' extractions(sr)
+#' ma <- extract(ch, llm = my_model, form = form("ma", measure = "binary"))
+#' effectsizes(ma)
 #' }
-extract <- function(chunks, llm, fields, prompt = NULL,
-                    per = c("record", "all"), model = "user-callback") {
+extract <- function(chunks, llm, form = NULL, prompt = NULL,
+                    per = c("record", "all"), model = "user-callback",
+                    fields = NULL) {
   if (!inherits(chunks, "medrev_chunks")) {
     mr_stop("{.arg chunks} must be a {.cls medrev_chunks} object (from {.fn chunk}).")
   }
   mr_check_llm(llm)
   per <- match.arg(per)
-  if (is.null(names(fields)) || !is.character(fields) || any(!nzchar(names(fields)))) {
-    mr_stop("{.arg fields} must be a named character vector, e.g. {.code c(n = \"sample size\")}.")
-  }
+  form <- form %||% fields
+  if (is.null(form)) mr_stop("Supply a {.arg form}, e.g. {.code form(\"sr\")}.")
+  f <- mr_as_form(form)
   template <- prompt %||% .mr_extract_prompt
   for (ph in c("{evidence}", "{schema}")) {
     if (!grepl(ph, template, fixed = TRUE)) mr_stop("{.arg prompt} must contain the {ph} placeholder.")
   }
-  schema <- paste(sprintf("  \"%s\": string  // %s", names(fields), fields), collapse = ",\n")
-  schema <- paste0("{\n", schema, "\n}")
+  schema <- mr_form_prompt_schema(f)
+  rows_form <- identical(attr(f, "unit"), "row")
+  itype <- if (rows_form) "effect" else "extraction"
 
   d <- as.data.frame(chunks)
   if (!nrow(d)) {
@@ -61,17 +71,20 @@ extract <- function(chunks, llm, fields, prompt = NULL,
     evidence <- paste(sprintf("[%s] %s", g$chunk_id, g$text), collapse = "\n\n")
     p <- gsub("{schema}", schema, mr_render_prompt(template, evidence), fixed = TRUE)
     resp <- mr_call_llm(llm, p)
-    parsed <- mr_parse_json(resp, names(fields))
+    parsed <- mr_parse_form(resp, f)
     ok <- !is.null(parsed)
     if (!ok) n_bad <- n_bad + 1L
+    payload <- if (!ok) NA_character_
+      else if (rows_form) mr_to_json(list(rows = parsed))
+      else mr_to_json(parsed[[1]])
     rows[[k]] <- data.frame(
-      insight_id = sprintf("ext-%04d", k),
-      type = "extraction",
+      insight_id = sprintf("%s-%04d", if (rows_form) "eff" else "ext", k),
+      type = itype,
       record_id = if (per == "record") g$record_id[[1]] else NA_character_,
       chunk_ids = paste(g$chunk_id, collapse = ";"),
       n_chunks = nrow(g),
       text = if (ok) NA_character_ else resp,
-      data = if (ok) jsonlite::toJSON(parsed, auto_unbox = TRUE, null = "null") else NA_character_,
+      data = payload,
       model = model,
       at = mr_now(),
       stringsAsFactors = FALSE
@@ -84,52 +97,121 @@ extract <- function(chunks, llm, fields, prompt = NULL,
 }
 
 .mr_extract_prompt <- paste0(
-  "Extract the following fields from the excerpts below. Use ONLY information ",
-  "in the excerpts; if a field is not reported, use null. Reply with a single ",
-  "JSON object and nothing else, matching this shape:\n\n{schema}\n\n",
+  "You are extracting data for a systematic review. Fill in the form below ",
+  "using ONLY the excerpts. For every field give the value and a short ",
+  "verbatim quote copied exactly from the excerpts that supports it. If a ",
+  "field is not reported, use null for both. Do not compute or convert ",
+  "values; report them as written. Reply with a single JSON object and ",
+  "nothing else, matching this shape:\n\n{schema}\n\n",
   "EXCERPTS:\n{evidence}"
 )
+
+mr_to_json <- function(x) {
+  as.character(jsonlite::toJSON(x, auto_unbox = TRUE, null = "null", na = "null", digits = NA))
+}
+
+# Parse a model response against a form. Returns a list of rows, each a named
+# list field -> list(value, quote), or NULL when nothing can be recovered.
+mr_parse_form <- function(txt, f) {
+  s <- gsub("```[a-zA-Z]*", "", txt)
+  m <- regmatches(s, regexpr("[\\{\\[].*[\\}\\]]", s, perl = TRUE))
+  if (!length(m)) return(NULL)
+  obj <- tryCatch(jsonlite::fromJSON(m, simplifyVector = FALSE), error = function(e) NULL)
+  if (is.null(obj)) return(NULL)
+  rows_form <- identical(attr(f, "unit"), "row")
+  objs <- if (rows_form) {
+    if (!is.null(names(obj)) && "rows" %in% names(obj)) obj$rows
+    else if (is.null(names(obj))) obj
+    else list(obj)
+  } else {
+    list(if (is.null(names(obj)) && length(obj)) obj[[1]] else obj)
+  }
+  objs <- Filter(function(o) is.list(o) && !is.null(names(o)), objs)
+  if (!length(objs)) {
+    return(if (rows_form && (identical(obj, list()) || identical(obj$rows, list()))) list() else NULL)
+  }
+  lapply(objs, function(o) mr_parse_fields(o, f))
+}
+
+mr_parse_fields <- function(o, f) {
+  out <- lapply(seq_len(nrow(f)), function(i) {
+    raw <- o[[f$field[[i]]]]
+    if (is.list(raw) && !is.null(names(raw)) && any(c("value", "quote") %in% names(raw))) {
+      v <- raw$value
+      q <- raw$quote
+    } else {
+      v <- raw
+      q <- NULL
+    }
+    q <- if (is.null(q) || !length(q) || all(is.na(unlist(q)))) NA_character_ else paste(unlist(q), collapse = " ")
+    list(value = mr_coerce_value(v, f$kind[[i]], f$choices[[i]]), quote = q)
+  })
+  names(out) <- f$field
+  out
+}
 
 #' Flatten extraction insights to a table
 #'
 #' @param insights A `medrev_insights` object from [extract()].
+#' @param type `"extraction"` (one row per study, from one-row forms such as
+#'   `form("sr")`) or `"effect"` (one row per extracted effect row, from
+#'   `form("ma")`).
+#' @param quotes If `TRUE`, add a `<field>_quote` column next to each field
+#'   with the supporting quote.
 #'
-#' @return A `basetable` with `record_id`, `insight_id`, and one column per
-#'   extracted field. Unparsed rows have `NA` fields.
+#' @return A `basetable` with `record_id`, `insight_id` (and `row` for
+#'   effects), and one column per field. Number and integer fields are
+#'   numeric. Unparsed rows have `NA` fields.
 #' @export
-extractions <- function(insights) {
+extractions <- function(insights, type = c("extraction", "effect"), quotes = FALSE) {
   if (!inherits(insights, "medrev_insights")) {
     mr_stop("{.arg insights} must be a {.cls medrev_insights} object.")
   }
+  type <- match.arg(type)
   d <- as.data.frame(insights)
-  d <- d[d$type == "extraction", , drop = FALSE]
-  if (!nrow(d)) return(basetable::as_basetable(data.frame(record_id = character(),
-                                                          insight_id = character())))
+  d <- d[d$type == type, , drop = FALSE]
+  empty <- data.frame(record_id = character(), insight_id = character())
+  if (type == "effect") empty$row <- integer()
+  if (!nrow(d)) return(basetable::as_basetable(empty))
   rows <- lapply(seq_len(nrow(d)), function(i) {
     base <- data.frame(record_id = d$record_id[[i]], insight_id = d$insight_id[[i]],
                        stringsAsFactors = FALSE)
-    if (is.na(d$data[[i]])) return(base)
-    obj <- tryCatch(jsonlite::fromJSON(d$data[[i]]), error = function(e) list())
-    if (!length(obj)) return(base)
-    flat <- lapply(obj, function(v) if (is.null(v) || all(is.na(v))) NA_character_ else paste(as.character(v), collapse = "; "))
-    cbind(base, as.data.frame(flat, stringsAsFactors = FALSE), stringsAsFactors = FALSE)
+    if (type == "effect") base$row <- NA_integer_
+    objs <- mr_insight_rows(d$data[[i]], type)
+    if (!length(objs)) return(base)
+    do.call(rbind, lapply(seq_along(objs), function(j) {
+      b <- base
+      if (type == "effect") b$row <- j
+      cbind(b, mr_flatten_obj(objs[[j]], quotes), stringsAsFactors = FALSE)
+    }))
   })
-  do.call(basetable::rbindfill, rows)
+  out <- do.call(basetable::rbindfill, rows)
+  basetable::as_basetable(out)
 }
 
-# Best-effort parse of a model response into a named list of the requested
-# keys. Returns NULL when no JSON object can be recovered.
-mr_parse_json <- function(txt, keys) {
-  s <- gsub("```[a-zA-Z]*", "", txt)
-  m <- regmatches(s, regexpr("\\{.*\\}", s, perl = TRUE))
-  if (!length(m)) return(NULL)
-  obj <- tryCatch(jsonlite::fromJSON(m, simplifyVector = TRUE), error = function(e) NULL)
-  if (!is.list(obj)) return(NULL)
-  out <- lapply(keys, function(k) {
-    v <- obj[[k]]
-    if (is.null(v) || length(v) == 0L || all(is.na(v))) NA_character_
-    else paste(as.character(v), collapse = "; ")
-  })
-  names(out) <- keys
-  out
+# Decode one insight's JSON into a list of field objects.
+mr_insight_rows <- function(json, type) {
+  if (is.na(json)) return(list())
+  obj <- tryCatch(jsonlite::fromJSON(json, simplifyVector = FALSE), error = function(e) NULL)
+  if (!length(obj)) return(list())
+  if (type == "effect") obj$rows %||% list() else list(obj)
+}
+
+# A field object -> one-row data.frame (value, plus quote if asked).
+mr_flatten_obj <- function(o, quotes = FALSE) {
+  cols <- list()
+  for (nm in names(o)) {
+    v <- o[[nm]]
+    q <- NA_character_
+    if (is.list(v) && !is.null(names(v)) && "value" %in% names(v)) {
+      q <- if (is.null(v$quote)) NA_character_ else as.character(v$quote)
+      v <- v$value
+    }
+    cols[[nm]] <- if (is.null(v) || !length(v)) NA
+      else if (is.numeric(v) && length(v) == 1L) v
+      else if (all(is.na(unlist(v)))) NA
+      else paste(as.character(unlist(v)), collapse = "; ")
+    if (quotes) cols[[paste0(nm, "_quote")]] <- q
+  }
+  as.data.frame(cols, stringsAsFactors = FALSE, check.names = FALSE)
 }
