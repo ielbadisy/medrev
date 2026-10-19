@@ -70,4 +70,6 @@ test_that("verify() validates its inputs", {
 test_that("mr_norm_text ignores case, dashes, spacing and thousands separators", {
   expect_equal(medrev:::mr_norm_text("OR 0.71 (95% CI 0.52–0.97); n = 1,204"),
                "or 0.71 95% ci 0.52-0.97 n 1204")
+  expect_true(medrev:::mr_number_in(3.53, "OR 3\u00b753 (95% CI 1\u00b703-12\u00b703)"))
+  expect_equal(medrev:::mr_norm_text("p=0\u00b7044"), "p 0.044")
 })

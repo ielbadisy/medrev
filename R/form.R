@@ -232,6 +232,7 @@ mr_coerce_value <- function(v, kind, choices = "") {
 mr_first_number <- function(s) {
   s <- gsub("(?<=\\d),(?=\\d{3})", "", s, perl = TRUE)
   s <- gsub("\u2212", "-", s)
+  s <- gsub("(?<=\\d)\u00b7(?=\\d)", ".", s, perl = TRUE)
   m <- regmatches(s, regexpr("-?\\d*\\.?\\d+(?:[eE][-+]?\\d+)?", s, perl = TRUE))
   if (!length(m)) return(NA_real_)
   suppressWarnings(as.numeric(m))

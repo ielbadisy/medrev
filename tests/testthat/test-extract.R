@@ -53,6 +53,7 @@ test_that("mr_first_number handles separators, signs and p-value notation", {
   expect_equal(medrev:::mr_first_number("<0.001"), 0.001)
   expect_equal(medrev:::mr_first_number("−0.35"), -0.35)
   expect_true(is.na(medrev:::mr_first_number("none")))
+  expect_equal(medrev:::mr_first_number("3\u00b753 (1\u00b703-12\u00b703)"), 3.53)
 })
 
 test_that("form() builds sr and ma forms, adds and drops fields", {
