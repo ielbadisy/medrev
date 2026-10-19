@@ -2,7 +2,6 @@
 % Please edit documentation in R/medrev-package.R
 \docType{package}
 \name{medrev-package}
-\alias{medrev}
 \alias{medrev-package}
 \title{medrev: A Reproducible Toolkit for Biomedical Literature Reviews}
 \description{
