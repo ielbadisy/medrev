@@ -179,13 +179,14 @@ extractions <- function(insights, type = c("extraction", "effect"), quotes = FAL
     if (type == "effect") base$row <- NA_integer_
     objs <- mr_insight_rows(d$data[[i]], type)
     if (!length(objs)) return(base)
-    do.call(rbind, lapply(seq_along(objs), function(j) {
+    parts <- lapply(seq_along(objs), function(j) {
       b <- base
       if (type == "effect") b$row <- j
       cbind(b, mr_flatten_obj(objs[[j]], quotes), stringsAsFactors = FALSE)
-    }))
+    })
+    as.data.frame(do.call(basetable::rbindfill, c(parts, typeconflict = "coerce")))
   })
-  out <- do.call(basetable::rbindfill, rows)
+  out <- do.call(basetable::rbindfill, c(rows, typeconflict = "coerce"))
   basetable::as_basetable(out)
 }
 
