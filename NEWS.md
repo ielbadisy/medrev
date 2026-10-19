@@ -1,3 +1,10 @@
+# medrev 0.8.1
+
+* `extract()` now reads pretty-printed (multi-line) JSON replies and ignores
+  notes the model adds after the JSON. Before, such replies were not parsed.
+* `verify()` and the number coercion in `extract()` read decimals written with
+  a middle dot (`3·53`, as in The Lancet) as decimal points.
+
 # medrev 0.8.0
 
 Data extraction for systematic reviews and meta-analysis.
