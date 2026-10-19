@@ -1,3 +1,33 @@
+# medrev 0.8.0
+
+Data extraction for systematic reviews and meta-analysis.
+
+* `form()` builds typed extraction forms: `form("sr")` for study
+  characteristics (one row per study) and `form("ma")` for effect data (one
+  row per outcome, comparison and timepoint), with `add =` and `drop =`.
+* `extract()` takes a `form =`. The model returns every value with a
+  verbatim supporting quote; values are coerced to the field type. Effect
+  data are stored as `type = "effect"` insights. `fields =` still works for
+  a named vector of free-text fields.
+* `extractions()` gains `type = "effect"` and `quotes = TRUE`.
+* `verify()` checks extracted values: quotes not found in the source text,
+  numbers absent from their quote, estimates outside their CI, impossible
+  counts, SDs or p-values, arm sizes above the study total, and records that
+  share a trial registration.
+* `agreement()` compares two extractions field by field (double extraction).
+* `studies()` groups records reporting the same trial by registration.
+* `effectsizes()` returns one effect size per effect row on the pooling scale
+  (log for OR / RR / HR) with its standard error, from the reported CI or
+  p-value, or computed from 2x2 counts or means and SDs (Hedges' g for SMD);
+  ready for `metafor::rma()` or `meta::metagen()`.
+* `pdftext()` reads local PDFs (with 'pdftools' or the `pdftotext` program)
+  for `chunk()`, which now also accepts a list of full-text tables.
+* `medrev()` builds a review from a table of records, e.g. an Embase or
+  Cochrane export, to combine with Europe PMC searches.
+* `fetch()` takes Europe PMC articles from the PMC open-access bucket
+  published by NCBI, as Europe PMC PDF links now sit behind a browser check.
+* New vignette `vignette("extraction")`, run offline end to end.
+
 # medrev 0.7.0
 
 * `screen()` gains `file =` to write the blank screening sheet to CSV, and
