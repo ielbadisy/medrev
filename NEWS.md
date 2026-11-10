@@ -1,5 +1,7 @@
 # medrev 0.8.1
 
+* Subsetting a `form()` by columns returns a plain data frame when a form
+  column is dropped, so `print()` no longer fails ("replacement has 0 rows").
 * `extract()` now reads pretty-printed (multi-line) JSON replies and ignores
   notes the model adds after the JSON. Before, such replies were not parsed.
 * `verify()` and the number coercion in `extract()` read decimals written with

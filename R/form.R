@@ -175,6 +175,18 @@ print.medrev_form <- function(x, ...) {
 }
 
 #' @export
+`[.medrev_form` <- function(x, ...) {
+  unit <- attr(x, "unit")
+  type <- attr(x, "type")
+  out <- `[.data.frame`(as.data.frame(x), ...)
+  # Stay a form only when the four form columns survive the subset
+  if (is.data.frame(out) && all(c("field", "kind", "description", "choices") %in% names(out))) {
+    out <- structure(out, class = c("medrev_form", "data.frame"), unit = unit, type = type)
+  }
+  out
+}
+
+#' @export
 as.data.frame.medrev_form <- function(x, ...) {
   attr(x, "unit") <- NULL
   attr(x, "type") <- NULL

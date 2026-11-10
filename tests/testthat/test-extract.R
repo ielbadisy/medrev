@@ -138,3 +138,14 @@ test_that("extract() on empty chunks returns empty insights", {
   ch <- chunk(medrev:::mr_set_df(r, d), which = "all")
   expect_equal(nrow(as.data.frame(extract(ch, llm_echo, fields = fields3))), 0L)
 })
+
+test_that("subsetting a form keeps it printable", {
+  f <- form("sr")
+  cols <- f[, c("field", "kind", "choices")]
+  expect_false(inherits(cols, "medrev_form"))
+  expect_output(print(cols), "field")
+  rows <- f[1:3, ]
+  expect_s3_class(rows, "medrev_form")
+  expect_identical(attr(rows, "unit"), "study")
+  expect_output(print(rows), "3 fields")
+})
