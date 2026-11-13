@@ -11,11 +11,19 @@ prisma(x)
 }
 \value{
 A \code{medrev_prisma} object: a named integer vector of counts with a
-print method that lays out the flow.
+print method that lays out the flow. Its elements are \code{identified},
+\code{duplicates_removed}, \code{flagged_for_review}, \code{after_deduplication},
+\code{screened}, \code{excluded}, \code{maybe}, \code{awaiting}, \code{included} and
+\code{included_with_pdf}.
 }
 \description{
 Derives the identification / de-duplication / screening / inclusion counts
 from the review's stage log and current screening decisions.
+}
+\details{
+Only records with an explicit \code{"include"} decision count as studies
+included. Records with no decision yet are reported separately as
+awaiting a decision, and \code{"maybe"} records as undecided.
 }
 \examples{
 \dontrun{

@@ -1,6 +1,6 @@
 Package: medrev
 Title: A Reproducible Toolkit for Biomedical Literature Reviews
-Version: 0.8.2
+Version: 0.8.3
 Authors@R: c(
     person(
       given = "Imad",

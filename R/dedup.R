@@ -8,17 +8,26 @@
 #' occurrence is kept.
 #'
 #' With `fuzzy = TRUE`, titles that are near-identical after normalisation are
-#' also collapsed. A near-zero edit distance is a confident duplicate and is
-#' removed; a borderline match (distance between `cutoff / 2` and `cutoff`) is
-#' *kept* but flagged in `attr(x, "review_candidates")` for a manual look,
-#' because one differing word in an otherwise identical title can be a
-#' different study.
+#' also collapsed. Each record's title is compared with the titles already
+#' kept, using the normalised edit distance `d` of [fuzzymatch()]
+#' (Levenshtein distance divided by the length of the longer title, so `d` is
+#' symmetric and lies in `[0, 1]`). For the nearest kept title, when the
+#' publication years agree (or either is missing):
+#'
+#' * `d <= cutoff / 2`: a confident duplicate; the record is **dropped** and
+#'   listed in `attr(x, "duplicate_audit")`.
+#' * `cutoff / 2 < d <= cutoff`: a borderline match; the record is **kept**
+#'   but **flagged** in `attr(x, "review_candidates")` for a manual look,
+#'   because one differing word in an otherwise identical title can be a
+#'   different study.
+#' * `d > cutoff`: treated as a different record.
 #'
 #' @param x A `medrev` object.
 #' @param by Keys to match on: any of `"doi"`, `"pmid"`, `"pmcid"`, `"title"`.
 #' @param fuzzy Also collapse near-identical titles.
 #' @param cutoff Maximum normalised title edit distance treated as a fuzzy
-#'   match (0-1).
+#'   match (0-1). Matches at or below `cutoff / 2` are dropped; matches above
+#'   `cutoff / 2` and at or below `cutoff` are kept and flagged.
 #'
 #' @return The `medrev` object with duplicates removed, a `"deduplicated"`
 #'   stage logged, and a `duplicate_audit` attribute listing what was dropped.
@@ -115,15 +124,26 @@ mr_fuzzy_nearest <- function(one, pool) {
   a <- mr_norm_title(one)
   b <- mr_norm_title(pool)
   if (!nzchar(a) || !length(b)) return(list(which = NA_integer_, dist = NA_real_))
-  d <- as.integer(utils::adist(a, b, ignore.case = TRUE))
-  nd <- d / max(nchar(a), 1L)
+  nd <- mr_title_dist(a, b)
   w <- which.min(nd)
   list(which = w, dist = nd[[w]])
 }
 
+# Normalised edit distance between one normalised title `a` and each of `b`:
+# Levenshtein distance divided by the longer of the two titles, so it is
+# symmetric and lies in [0, 1].
+mr_title_dist <- function(a, b) {
+  d <- as.integer(utils::adist(a, b, ignore.case = TRUE))
+  d / pmax(nchar(a), nchar(b), 1L)
+}
+
 #' Fuzzy-match one title against a set of candidates
 #'
-#' Exposes the normalised edit-distance matcher [dedup()] uses.
+#' Exposes the normalised edit-distance matcher [dedup()] uses. Both titles
+#' are normalised (lower-cased, markup and punctuation stripped, whitespace
+#' collapsed), then the Levenshtein distance is divided by the length of the
+#' longer title. The distance is therefore symmetric and lies in `[0, 1]`:
+#' 0 for identical normalised titles, 1 for titles with nothing in common.
 #'
 #' @param x A single title string.
 #' @param choices A character vector of candidate titles.
@@ -142,8 +162,7 @@ fuzzymatch <- function(x, choices, cutoff = 0.1) {
   mr_check_string(x, "x")
   a <- mr_norm_title(x)
   b <- mr_norm_title(choices)
-  d <- as.integer(utils::adist(a, b, ignore.case = TRUE))
-  nd <- d / max(nchar(a), 1L)
+  nd <- mr_title_dist(a, b)
   ord <- order(nd)
   data.frame(choice = choices[ord], dist = nd[ord], match = nd[ord] <= cutoff,
              stringsAsFactors = FALSE)

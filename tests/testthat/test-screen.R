@@ -65,5 +65,6 @@ test_that("screening is visible to prisma()", {
   p <- prisma(r)
   expect_s3_class(p, "medrev_prisma")
   expect_equal(p[["excluded"]], 1L)
-  expect_equal(p[["included"]], 4L)
+  expect_equal(p[["included"]], 0L)
+  expect_equal(p[["awaiting"]], 4L)
 })

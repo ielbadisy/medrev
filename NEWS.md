@@ -1,3 +1,17 @@
+# medrev 0.8.3
+
+* `prisma()` counts as "studies included" only records with an `"include"`
+  decision. Records with no decision yet are reported separately as
+  `awaiting` ("awaiting decision" in the printed flow and in
+  `reviewbrief()`). Before, undecided records were counted as included.
+* The fuzzy title distance used by `dedup(fuzzy = TRUE)` and `fuzzymatch()`
+  is now divided by the length of the longer title, so it is symmetric and
+  lies in `[0, 1]`. Before, it was divided by the incoming title's length
+  only and could exceed 1. The help page of `dedup()` now documents the rule:
+  drop at `d <= cutoff / 2`, keep and flag for review up to `cutoff`.
+* Tests check that the deprecated underscore aliases still work and that the
+  vignettes and README use only the new names.
+
 # medrev 0.8.2
 
 * Exported functions are renamed to glued lowercase (no underscores). The old names remain as deprecated wrappers for one release.
