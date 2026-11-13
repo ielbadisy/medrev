@@ -3,7 +3,7 @@ q <- function(v, quote = NA) list(value = v, quote = quote)
 src_chunks <- function(text, id = "pmid:1") {
   df <- data.frame(record_id = id, chunk_id = paste0(id, "#01"), seq = 1L, text = text,
                    n_words = 10L, tokens_est = 13L, source = "europepmc", stringsAsFactors = FALSE)
-  structure(basetable::as_basetable(df), class = c("medrev_chunks", "basetable", "data.frame"))
+  structure(basetable::asbasetable(df), class = c("medrev_chunks", "basetable", "data.frame"))
 }
 
 test_that("a fully supported extraction passes every check", {

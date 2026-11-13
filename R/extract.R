@@ -207,7 +207,7 @@ extractions <- function(insights, type = c("extraction", "effect"), quotes = FAL
   d <- d[d$type == type, , drop = FALSE]
   empty <- data.frame(record_id = character(), insight_id = character())
   if (type == "effect") empty$row <- integer()
-  if (!nrow(d)) return(basetable::as_basetable(empty))
+  if (!nrow(d)) return(basetable::asbasetable(empty))
   rows <- lapply(seq_len(nrow(d)), function(i) {
     base <- data.frame(record_id = d$record_id[[i]], insight_id = d$insight_id[[i]],
                        stringsAsFactors = FALSE)
@@ -222,7 +222,7 @@ extractions <- function(insights, type = c("extraction", "effect"), quotes = FAL
     as.data.frame(do.call(basetable::rbindfill, c(parts, typeconflict = "coerce")))
   })
   out <- do.call(basetable::rbindfill, c(rows, typeconflict = "coerce"))
-  basetable::as_basetable(out)
+  basetable::asbasetable(out)
 }
 
 # Decode one insight's JSON into a list of field objects.

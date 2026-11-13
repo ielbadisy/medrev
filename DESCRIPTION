@@ -1,6 +1,6 @@
 Package: medrev
 Title: A Reproducible Toolkit for Biomedical Literature Reviews
-Version: 0.8.1
+Version: 0.8.2
 Authors@R: c(
     person(
       given = "Imad",
@@ -34,7 +34,7 @@ BugReports: https://github.com/ielbadisy/medrev/issues
 Depends:
     R (>= 4.2.0)
 Imports:
-    basetable (>= 1.4.0),
+    basetable (>= 1.4.5),
     cli,
     httr2,
     jsonlite,

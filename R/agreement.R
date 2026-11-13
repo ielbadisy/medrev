@@ -63,7 +63,7 @@ agreement <- function(a, b, type = c("extraction", "effect"), tol = 1e-6) {
   } else {
     cli::cli_alert_warning("Nothing to compare.")
   }
-  basetable::as_basetable(out)
+  basetable::asbasetable(out)
 }
 
 # insights -> named list of field lists; names are match keys.

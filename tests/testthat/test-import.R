@@ -2,14 +2,14 @@ test_that("medrev() builds a review with ids, typed columns and logs", {
   r <- medrev(data.frame(Title = c("A", "B", "C"), PMID = c("11", NA, NA),
                          doi = c(NA, "https://doi.org/10.1/X", ""), year = c("2020", "2021", "x"),
                          extra = 1:3), source = "embase")
-  expect_true(is_medrev(r))
+  expect_true(ismedrev(r))
   d <- medrev:::mr_df(r)
   expect_equal(d$id, c("pmid:11", "doi:10.1/x", "embase:3"))
   expect_equal(d$doi, c(NA, "10.1/X", NA))
   expect_identical(d$year, c(2020L, 2021L, NA))
   expect_equal(d$source, rep("embase", 3))
   expect_false("extra" %in% names(d))
-  expect_equal(nrow(as.data.frame(search_log(r))), 1L)
+  expect_equal(nrow(as.data.frame(searchlog(r))), 1L)
   expect_equal(as.data.frame(prisma(r))$n[1], 3L)
 })
 

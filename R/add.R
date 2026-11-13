@@ -5,7 +5,7 @@
 #' Runs a further query (or identifier lookup) and merges the new records into
 #' `x`. Records whose `id` is already present are not added again; run
 #' [dedup()] afterwards for title-level de-duplication across the combined set.
-#' Each call is appended to the review's search log (see [search_log()]).
+#' Each call is appended to the review's search log (see [searchlog()]).
 #'
 #' @param x A `medrev` object.
 #' @param query,ids,n,years,sort As in [pubmed()].
@@ -17,7 +17,7 @@
 #' \dontrun{
 #' r <- pubmed("sepsis prognosis machine learning", n = 100)
 #' r <- add(r, "sepsis mortality prediction deep learning", n = 100)
-#' search_log(r)
+#' searchlog(r)
 #' }
 add <- function(x, query = NULL, ids = NULL, n = 100L, years = NULL,
                 sort = c("relevance", "date")) {
@@ -49,9 +49,9 @@ add <- function(x, query = NULL, ids = NULL, n = 100L, years = NULL,
 #'
 #' @examples
 #' \dontrun{
-#' search_log(pubmed("crispr screen", n = 20))
+#' searchlog(pubmed("crispr screen", n = 20))
 #' }
-search_log <- function(x) {
+searchlog <- function(x) {
   mr_assert(x)
-  basetable::as_basetable(as.data.frame(x$searches))
+  basetable::asbasetable(as.data.frame(x$searches))
 }

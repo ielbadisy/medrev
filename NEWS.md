@@ -1,3 +1,21 @@
+# medrev 0.8.2
+
+* Exported functions are renamed to glued lowercase (no underscores). The old names remain as deprecated wrappers for one release.
+* Requires basetable >= 1.4.5 (`asbasetable()`).
+
+| Old | New |
+|---|---|
+| `fuzzy_match` | `fuzzymatch` |
+| `is_medrev` | `ismedrev` |
+| `llm_echo` | `llmecho` |
+| `medrev_cache_clear` | `medrevcacheclear` |
+| `medrev_cache_path` | `medrevcachepath` |
+| `medrev_email` | `medrevemail` |
+| `review_brief` | `reviewbrief` |
+| `search_log` | `searchlog` |
+| `term_counts` | `termcounts` |
+| `year_counts` | `yearcounts` |
+
 # medrev 0.8.1
 
 * Subsetting a `form()` by columns returns a plain data frame when a form

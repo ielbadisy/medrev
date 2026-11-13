@@ -1,5 +1,5 @@
-test_that("llm_echo reports the prompt size", {
-  expect_equal(llm_echo("a b c"), "[echo] response to a 3-word prompt.")
+test_that("llmecho reports the prompt size", {
+  expect_equal(llmecho("a b c"), "[echo] response to a 3-word prompt.")
 })
 
 test_that("mr_check_llm / mr_call_llm guard the callback and its response", {
@@ -30,7 +30,7 @@ test_that("summarize(per = 'record') makes one grounded summary per record", {
 
 test_that("summarize(per = 'all') makes a single cross-record summary", {
   ch <- chunk(chunkable_review(), size = 100, overlap = 10, which = "all")
-  ins <- as.data.frame(summarize(ch, llm = llm_echo, per = "all"))
+  ins <- as.data.frame(summarize(ch, llm = llmecho, per = "all"))
   expect_equal(nrow(ins), 1L)
   expect_true(is.na(ins$record_id))
   expect_gt(ins$n_chunks, 1L)
@@ -42,14 +42,14 @@ test_that("summarize accepts a custom prompt and rejects one without {evidence}"
   ins <- summarize(ch, llm = function(p, ...) { seen <<- p; "ok" },
                    prompt = "TL;DR of: {evidence}", per = "all")
   expect_match(seen, "^TL;DR of: ")
-  expect_error(summarize(ch, llm = llm_echo, prompt = "no placeholder"), "\\{evidence\\}")
+  expect_error(summarize(ch, llm = llmecho, prompt = "no placeholder"), "\\{evidence\\}")
 })
 
 test_that("summarize on empty chunks returns an empty insights table", {
   r <- chunkable_review()
   d <- medrev:::mr_df(r); d$abstract <- NA_character_
   ch <- chunk(medrev:::mr_set_df(r, d), which = "all")
-  ins <- summarize(ch, llm = llm_echo)
+  ins <- summarize(ch, llm = llmecho)
   expect_s3_class(ins, "medrev_insights")
   expect_equal(nrow(as.data.frame(ins)), 0L)
 })

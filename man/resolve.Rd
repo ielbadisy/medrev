@@ -40,13 +40,13 @@ Sources:
 \item \code{"europepmc"} - the Europe PMC full-text PDF for open-access PMC articles
 (no network call - the URL is constructed).
 \item \code{"unpaywall"} - the best open-access PDF Unpaywall knows for the DOI.
-Requires a contact e-mail (see \code{\link[=medrev_email]{medrev_email()}}). Queried for all
+Requires a contact e-mail (see \code{\link[=medrevemail]{medrevemail()}}). Queried for all
 candidates at once, \code{max_active} requests in flight.
 \item \code{"citation_meta"} - the \code{citation_pdf_url} tag on the landing page, only
 for records already known to be open access.
 }
 
-Every link found is written to an on-disk cache (see \code{\link[=medrev_cache_path]{medrev_cache_path()}}),
+Every link found is written to an on-disk cache (see \code{\link[=medrevcachepath]{medrevcachepath()}}),
 so re-running \code{resolve()} on an overlapping review is nearly free.
 }
 \examples{

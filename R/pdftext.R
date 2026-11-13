@@ -73,7 +73,7 @@ pdftext <- function(x, dir = "medrev_pdfs", name = "{pmid}", files = NULL,
   if (any(out$status == "unreadable")) {
     cli::cli_alert_warning("{sum(out$status == 'unreadable')} PDF{?s} had no extractable text (scanned images need OCR).")
   }
-  basetable::as_basetable(out)
+  basetable::asbasetable(out)
 }
 
 mr_pdf_engine <- function(engine) {

@@ -72,7 +72,7 @@ chunk <- function(x, size = 1200L, overlap = 100L,
     cli::cli_alert_info("{n_empty} record{?s} had no usable text and produced no chunks.")
   }
   cli::cli_alert_success("{nrow(out)} chunk{?s} from {length(rows)} record{?s}.")
-  structure(basetable::as_basetable(out), class = c("medrev_chunks", "basetable", "data.frame"))
+  structure(basetable::asbasetable(out), class = c("medrev_chunks", "basetable", "data.frame"))
 }
 
 # text -> list of {text, n} word windows.

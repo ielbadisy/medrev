@@ -1,5 +1,5 @@
-test_that("search_log returns one row per logged search", {
-  sl <- search_log(fake_review())
+test_that("searchlog returns one row per logged search", {
+  sl <- searchlog(fake_review())
   expect_s3_class(sl, "basetable")
   d <- as.data.frame(sl)
   expect_equal(nrow(d), 1L)
@@ -25,6 +25,6 @@ test_that("add() merges a live second search", {
   d <- as.data.frame(r)
   expect_gte(nrow(d), n1)
   expect_equal(anyDuplicated(d$id), 0L)
-  expect_equal(nrow(as.data.frame(search_log(r))), 2L)
+  expect_equal(nrow(as.data.frame(searchlog(r))), 2L)
   expect_true("added" %in% as.data.frame(r$stages)$stage)
 })

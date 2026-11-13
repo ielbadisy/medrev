@@ -20,7 +20,7 @@ fulltext(
 \item{format}{\code{"text"} (JATS \verb{<body>} flattened to text) or \code{"xml"} (the raw
 document).}
 
-\item{email}{Optional contact e-mail (see \code{\link[=medrev_email]{medrev_email()}}).}
+\item{email}{Optional contact e-mail (see \code{\link[=medrevemail]{medrevemail()}}).}
 }
 \value{
 A \code{basetable} with one row per attempted record: \code{id}, \code{pmcid},

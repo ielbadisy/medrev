@@ -97,7 +97,7 @@ mr_eval_cond <- function(expr, df, env) {
 }
 
 mr_screen_sheet <- function(df) {
-  basetable::as_basetable(data.frame(
+  basetable::asbasetable(data.frame(
     id = df$id, pmid = df$pmid, doi = df$doi, year = df$year,
     journal = df$journal, title = df$title, abstract = df$abstract,
     decision = df$decision, exclude_reason = df$reason,

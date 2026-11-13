@@ -15,14 +15,14 @@
 #' @export
 #'
 #' @examples
-#' withr::with_options(list(medrev.email = "me@example.org"), medrev_email())
-medrev_email <- function(email = NULL) {
+#' withr::with_options(list(medrev.email = "me@example.org"), medrevemail())
+medrevemail <- function(email = NULL) {
   email <- email %||% getOption("medrev.email") %||% Sys.getenv("MEDREV_EMAIL", "")
   if (is.null(email) || !nzchar(email)) NULL else email
 }
 
 mr_require_email <- function(email, what) {
-  email <- medrev_email(email)
+  email <- medrevemail(email)
   if (is.null(email)) {
     mr_stop(
       "{what} needs a contact e-mail.",
@@ -33,7 +33,7 @@ mr_require_email <- function(email, what) {
 }
 
 mr_user_agent <- function(email = NULL) {
-  email <- medrev_email(email)
+  email <- medrevemail(email)
   v <- utils::packageVersion("medrev")
   base <- paste0("medrev/", v, " (https://github.com/ielbadisy/medrev)")
   if (is.null(email)) base else paste0(base, "; mailto:", email)

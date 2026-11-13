@@ -19,8 +19,8 @@
 #' @export
 #'
 #' @examples
-#' llm_echo("summarise this evidence")
-llm_echo <- function(prompt, ...) {
+#' llmecho("summarise this evidence")
+llmecho <- function(prompt, ...) {
   nw <- length(strsplit(trimws(prompt), "\\s+")[[1]])
   sprintf("[echo] response to a %d-word prompt.", nw)
 }
@@ -32,7 +32,7 @@ new_medrev_insights <- function(df) {
   for (col in setdiff(.mr_insight_cols, names(df))) df[[col]] <- NA
   df <- df[, .mr_insight_cols, drop = FALSE]
   rownames(df) <- NULL
-  structure(basetable::as_basetable(df),
+  structure(basetable::asbasetable(df),
             class = c("medrev_insights", "basetable", "data.frame"))
 }
 
