@@ -18,7 +18,11 @@ A data frame with \code{choice}, \code{dist}, and \code{match} columns, ordered 
 distance.
 }
 \description{
-Exposes the normalised edit-distance matcher \code{\link[=dedup]{dedup()}} uses.
+Exposes the normalised edit-distance matcher \code{\link[=dedup]{dedup()}} uses. Both titles
+are normalised (lower-cased, markup and punctuation stripped, whitespace
+collapsed), then the Levenshtein distance is divided by the length of the
+longer title. The distance is therefore symmetric and lies in \verb{[0, 1]}:
+0 for identical normalised titles, 1 for titles with nothing in common.
 }
 \examples{
 fuzzymatch(

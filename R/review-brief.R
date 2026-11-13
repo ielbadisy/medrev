@@ -47,6 +47,7 @@ reviewbrief <- function(x, insights = NULL, title = "Rapid evidence brief",
     sprintf("duplicates removed: %d", p[["duplicates_removed"]]),
     sprintf("records screened: %d", p[["screened"]]),
     sprintf("excluded: %d", p[["excluded"]]),
+    sprintf("awaiting decision: %d", p[["awaiting"]]),
     sprintf("studies included: %d", p[["included"]]),
     sprintf("included with an open-access PDF: %d", p[["included_with_pdf"]])
   ))

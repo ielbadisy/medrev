@@ -5,10 +5,17 @@
 #' Derives the identification / de-duplication / screening / inclusion counts
 #' from the review's stage log and current screening decisions.
 #'
+#' Only records with an explicit `"include"` decision count as studies
+#' included. Records with no decision yet are reported separately as
+#' awaiting a decision, and `"maybe"` records as undecided.
+#'
 #' @param x A `medrev` object.
 #'
 #' @return A `medrev_prisma` object: a named integer vector of counts with a
-#'   print method that lays out the flow.
+#'   print method that lays out the flow. Its elements are `identified`,
+#'   `duplicates_removed`, `flagged_for_review`, `after_deduplication`,
+#'   `screened`, `excluded`, `maybe`, `awaiting`, `included` and
+#'   `included_with_pdf`.
 #' @export
 #'
 #' @examples
@@ -36,9 +43,10 @@ prisma <- function(x) {
 
   excluded <- sum(df$decision %in% "exclude")
   maybe <- sum(df$decision %in% "maybe")
-  included <- nrow(df) - excluded - maybe
-  with_pdf <- sum(mr_which_rows(df, "included") &
-                    !is.na(df$pdf_url) & nzchar(df$pdf_url))
+  awaiting <- sum(is.na(df$decision))
+  is_inc <- df$decision %in% "include"
+  included <- sum(is_inc)
+  with_pdf <- sum(is_inc & !is.na(df$pdf_url) & nzchar(df$pdf_url))
 
   counts <- c(
     identified = as.integer(identified),
@@ -48,6 +56,7 @@ prisma <- function(x) {
     screened = as.integer(nrow(df)),
     excluded = as.integer(excluded),
     maybe = as.integer(maybe),
+    awaiting = as.integer(awaiting),
     included = as.integer(included),
     included_with_pdf = as.integer(with_pdf)
   )
@@ -67,6 +76,8 @@ print.medrev_prisma <- function(x, ...) {
   row("  excluded", -x[["excluded"]])
   if (x[["maybe"]] > 0)
     row("  undecided (maybe)", x[["maybe"]])
+  if (x[["awaiting"]] > 0)
+    row("  awaiting decision", x[["awaiting"]])
   row("studies included", x[["included"]])
   row("  with an open-access PDF", x[["included_with_pdf"]])
   invisible(x)

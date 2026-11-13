@@ -14,7 +14,8 @@ dedup(x, by = c("doi", "pmid", "pmcid", "title"), fuzzy = FALSE, cutoff = 0.08)
 \item{fuzzy}{Also collapse near-identical titles.}
 
 \item{cutoff}{Maximum normalised title edit distance treated as a fuzzy
-match (0-1).}
+match (0-1). Matches at or below \code{cutoff / 2} are dropped; matches above
+\code{cutoff / 2} and at or below \code{cutoff} are kept and flagged.}
 }
 \value{
 The \code{medrev} object with duplicates removed, a \code{"deduplicated"}
@@ -28,11 +29,20 @@ occurrence is kept.
 }
 \details{
 With \code{fuzzy = TRUE}, titles that are near-identical after normalisation are
-also collapsed. A near-zero edit distance is a confident duplicate and is
-removed; a borderline match (distance between \code{cutoff / 2} and \code{cutoff}) is
-\emph{kept} but flagged in \code{attr(x, "review_candidates")} for a manual look,
+also collapsed. Each record's title is compared with the titles already
+kept, using the normalised edit distance \code{d} of \code{\link[=fuzzymatch]{fuzzymatch()}}
+(Levenshtein distance divided by the length of the longer title, so \code{d} is
+symmetric and lies in \verb{[0, 1]}). For the nearest kept title, when the
+publication years agree (or either is missing):
+\itemize{
+\item \code{d <= cutoff / 2}: a confident duplicate; the record is \strong{dropped} and
+listed in \code{attr(x, "duplicate_audit")}.
+\item \verb{cutoff / 2 < d <= cutoff}: a borderline match; the record is \strong{kept}
+but \strong{flagged} in \code{attr(x, "review_candidates")} for a manual look,
 because one differing word in an otherwise identical title can be a
 different study.
+\item \code{d > cutoff}: treated as a different record.
+}
 }
 \examples{
 \dontrun{
