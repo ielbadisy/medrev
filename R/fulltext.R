@@ -11,7 +11,7 @@
 #'   [fetch()]).
 #' @param format `"text"` (JATS `<body>` flattened to text) or `"xml"` (the raw
 #'   document).
-#' @param email Optional contact e-mail (see [medrev_email()]).
+#' @param email Optional contact e-mail (see [medrevemail()]).
 #'
 #' @return A `basetable` with one row per attempted record: `id`, `pmcid`,
 #'   `status` (`"available"` / `"unavailable"`), `chars`, and a `text` or `xml`
@@ -59,14 +59,14 @@ fulltext <- function(x, which = c("included", "oa", "all"),
   names(log)[names(log) == "content"] <- format
   got <- sum(log$status == "available")
   cli::cli_alert_success("Full text for {got} of {nrow(log)} record{?s}.")
-  basetable::as_basetable(log)
+  basetable::asbasetable(log)
 }
 
 mr_empty_fulltext <- function(format) {
   out <- data.frame(id = character(), pmcid = character(), status = character(),
                     chars = integer(), stringsAsFactors = FALSE)
   out[[format]] <- character()
-  basetable::as_basetable(out)
+  basetable::asbasetable(out)
 }
 
 # Flatten JATS XML to text: the <body> if present, else the whole document.

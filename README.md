@@ -84,8 +84,8 @@ head(d[keep, c("year", "is_oa", "title")], 5)
 #> 1 2025 FALSE Interpretable machine learning based comorbidity specific mo
 #> 3 2025  TRUE Reforming disease prognosis and treatment prediction for pal
 #> 4 2025  TRUE Revolutionizing sepsis diagnosis using machine learning and 
-#> 5 2025  TRUE Prognostic model and U-shaped SBP-risk correlation in unstab
-#> 6 2025  TRUE Under the background of the new global definition of ARDS: a
+#> 5 2025  TRUE Under the background of the new global definition of ARDS: a
+#> 6 2025  TRUE Prognostic model and U-shaped SBP-risk correlation in unstab
 ```
 
 Resolve open-access PDF links (Europe PMC full text here; add
@@ -120,11 +120,11 @@ this README’s knit quick; drop it to fetch them all):
 dl <- fetch(r, dir = tempfile("medrev_pdfs"), which = "oa",
             name = "{year}_{pmid}", limit = 4)
 as.data.frame(dl)[, c("pmid", "pdf_source", "status", "bytes")]
-#>       pmid pdf_source     status    bytes
-#> 1 41339488  europepmc downloaded  3988934
-#> 2 41131449  europepmc downloaded  3319762
-#> 3 41402560  europepmc downloaded  2006381
-#> 4 41049485  europepmc downloaded 60355877
+#>       pmid pdf_source     status   bytes
+#> 1 41339488  europepmc downloaded 3988934
+#> 2 41131449  europepmc downloaded 3319762
+#> 3 41049485  europepmc     failed      NA
+#> 4 41402560  europepmc downloaded 2006381
 ```
 
 Export the references:
@@ -200,9 +200,9 @@ Every value comes with the verbatim quote that supports it
 (`extractions(sr, quotes = TRUE)`). `vignette("extraction", "medrev")`
 runs the whole loop offline.
 
-`summarize()`, `synthesize()` and `review_brief()` add grounded
-per-study summaries, a cross-study synthesis, and a Markdown brief.
-`llm_echo()` is a stub for trying the plumbing.
+`summarize()`, `synthesize()` and `reviewbrief()` add grounded per-study
+summaries, a cross-study synthesis, and a Markdown brief. `llmecho()` is
+a stub for trying the plumbing.
 
 ## Hand-screening in a spreadsheet
 

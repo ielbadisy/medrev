@@ -35,24 +35,24 @@ mr_cache_save <- function(new_rows) {
 #'
 #' [resolve()] caches every PDF link it finds to disk, keyed by record id, so
 #' re-running a review does not re-query Europe PMC / Unpaywall for links it
-#' already has. `medrev_cache_path()` returns the cache file location;
-#' `medrev_cache_clear()` deletes it.
+#' already has. `medrevcachepath()` returns the cache file location;
+#' `medrevcacheclear()` deletes it.
 #'
 #' The location is `getOption("medrev.cache_dir")` or, by default,
 #' `tools::R_user_dir("medrev", "cache")`.
 #'
-#' @return `medrev_cache_path()`: a path string. `medrev_cache_clear()`:
+#' @return `medrevcachepath()`: a path string. `medrevcacheclear()`:
 #'   `TRUE` if a cache file was removed, invisibly.
 #' @export
 #' @name medrev_cache
 #'
 #' @examples
-#' medrev_cache_path()
-medrev_cache_path <- function() mr_cache_file()
+#' medrevcachepath()
+medrevcachepath <- function() mr_cache_file()
 
 #' @rdname medrev_cache
 #' @export
-medrev_cache_clear <- function() {
+medrevcacheclear <- function() {
   f <- mr_cache_file()
   if (file.exists(f)) {
     unlink(f)

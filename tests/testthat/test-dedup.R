@@ -38,8 +38,8 @@ test_that("stage log records the deduplication step", {
   expect_true("deduplicated" %in% st$stage)
 })
 
-test_that("fuzzy_match ranks candidates by normalised distance", {
-  res <- fuzzy_match("Interpretable machine learning for cancer prognosis",
+test_that("fuzzymatch ranks candidates by normalised distance", {
+  res <- fuzzymatch("Interpretable machine learning for cancer prognosis",
                      c("An unrelated title",
                        "Interpretable ML for cancer prognosis"))
   expect_equal(res$choice[1], "Interpretable ML for cancer prognosis")

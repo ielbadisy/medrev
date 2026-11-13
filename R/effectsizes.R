@@ -88,7 +88,7 @@ effectsizes <- function(insights, study = NULL, prefer = c("reported", "computed
   } else {
     cli::cli_alert_warning("No effect rows to compute.")
   }
-  basetable::as_basetable(out)
+  basetable::asbasetable(out)
 }
 
 # One row -> list(measure, yi, sei, derived, note).

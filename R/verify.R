@@ -144,7 +144,7 @@ verify <- function(insights, chunks = NULL) {
     tab <- table(factor(out$severity, levels = c("error", "warning", "note")))
     cli::cli_alert_info("{tab[['error']]} error{?s}, {tab[['warning']]} warning{?s}, {tab[['note']]} note{?s}.")
   }
-  basetable::as_basetable(out)
+  basetable::asbasetable(out)
 }
 
 # Row-level rules on one object's values. Returns a list of issue specs.

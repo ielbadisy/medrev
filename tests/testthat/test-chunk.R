@@ -26,7 +26,7 @@ test_that("chunk() rejects overlap >= size", {
 
 test_that("chunk() uses fulltext where available", {
   r <- chunkable_review()
-  ft <- basetable::as_basetable(data.frame(
+  ft <- basetable::asbasetable(data.frame(
     id = "pmid:2", pmcid = "PMC2", status = "available",
     chars = 6L, text = paste(rep("word", 250), collapse = " "),
     stringsAsFactors = FALSE

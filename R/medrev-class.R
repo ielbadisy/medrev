@@ -9,7 +9,7 @@ new_medrev <- function(records, searches = NULL, stages = NULL) {
   records <- records[, .mr_cols, drop = FALSE]
   structure(
     list(
-      records = basetable::as_basetable(records),
+      records = basetable::asbasetable(records),
       searches = searches %||% mr_empty_searches(),
       stages = stages %||% mr_empty_stages(),
       meta = list(created = mr_now(), version = as.character(utils::packageVersion("medrev")))
@@ -50,7 +50,7 @@ mr_df <- function(x) as.data.frame(x$records)
 
 # Store a data.frame back as the record table, keeping schema + class.
 mr_set_df <- function(x, df) {
-  x$records <- basetable::as_basetable(df[, .mr_cols, drop = FALSE])
+  x$records <- basetable::asbasetable(df[, .mr_cols, drop = FALSE])
   x
 }
 
@@ -59,10 +59,10 @@ mr_set_df <- function(x, df) {
 #' @param x An object.
 #' @return A logical scalar.
 #' @export
-is_medrev <- function(x) inherits(x, "medrev")
+ismedrev <- function(x) inherits(x, "medrev")
 
 mr_assert <- function(x) {
-  if (!is_medrev(x)) mr_stop("{.arg x} must be a {.cls medrev} object (from {.fn pubmed}).")
+  if (!ismedrev(x)) mr_stop("{.arg x} must be a {.cls medrev} object (from {.fn pubmed}).")
   invisible(x)
 }
 

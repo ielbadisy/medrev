@@ -31,7 +31,7 @@ year.}
 \item{max_scan}{Stop after scanning this many records even if fewer than \code{n}
 matched.}
 
-\item{email}{Optional contact e-mail (see \code{\link[=medrev_email]{medrev_email()}}).}
+\item{email}{Optional contact e-mail (see \code{\link[=medrevemail]{medrevemail()}}).}
 }
 \value{
 A \code{medrev} object, ready to combine with a \code{\link[=pubmed]{pubmed()}} review via

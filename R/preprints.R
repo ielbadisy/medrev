@@ -22,7 +22,7 @@
 #' @param match `"all"` (every query word must appear) or `"any"`.
 #' @param max_scan Stop after scanning this many records even if fewer than `n`
 #'   matched.
-#' @param email Optional contact e-mail (see [medrev_email()]).
+#' @param email Optional contact e-mail (see [medrevemail()]).
 #'
 #' @return A `medrev` object, ready to combine with a [pubmed()] review via
 #'   [c()].
@@ -168,7 +168,7 @@ mr_biorxiv_rows <- function(cx, server) {
 #'        preprints("crispr base editing", "biorxiv"))
 #' }
 c.medrev <- function(...) {
-  xs <- Filter(is_medrev, list(...))
+  xs <- Filter(ismedrev, list(...))
   if (!length(xs)) mr_stop("{.fn c} needs at least one {.cls medrev} object.")
   if (length(xs) == 1L) return(xs[[1]])
 

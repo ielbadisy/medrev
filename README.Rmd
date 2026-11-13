@@ -169,8 +169,8 @@ Every value comes with the verbatim quote that supports it
 (`extractions(sr, quotes = TRUE)`). `vignette("extraction", "medrev")` runs
 the whole loop offline.
 
-`summarize()`, `synthesize()` and `review_brief()` add grounded per-study
-summaries, a cross-study synthesis, and a Markdown brief. `llm_echo()` is a
+`summarize()`, `synthesize()` and `reviewbrief()` add grounded per-study
+summaries, a cross-study synthesis, and a Markdown brief. `llmecho()` is a
 stub for trying the plumbing.
 
 ## Hand-screening in a spreadsheet

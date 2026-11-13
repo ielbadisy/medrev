@@ -16,7 +16,7 @@
 #'
 #' @param chunks A `medrev_chunks` object from [chunk()].
 #' @param llm A model callback: `function(prompt, ...)` returning a string. Use
-#'   [llm_echo()] to try the plumbing without a real model.
+#'   [llmecho()] to try the plumbing without a real model.
 #' @param prompt Optional prompt template; must contain the literal `{evidence}`
 #'   placeholder, which is replaced with the joined chunk text.
 #' @param per `"record"` for one summary per record, `"all"` for a single

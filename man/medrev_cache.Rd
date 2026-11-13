@@ -2,28 +2,28 @@
 % Please edit documentation in R/cache.R
 \name{medrev_cache}
 \alias{medrev_cache}
-\alias{medrev_cache_path}
-\alias{medrev_cache_clear}
+\alias{medrevcachepath}
+\alias{medrevcacheclear}
 \title{The resolve cache}
 \usage{
-medrev_cache_path()
+medrevcachepath()
 
-medrev_cache_clear()
+medrevcacheclear()
 }
 \value{
-\code{medrev_cache_path()}: a path string. \code{medrev_cache_clear()}:
+\code{medrevcachepath()}: a path string. \code{medrevcacheclear()}:
 \code{TRUE} if a cache file was removed, invisibly.
 }
 \description{
 \code{\link[=resolve]{resolve()}} caches every PDF link it finds to disk, keyed by record id, so
 re-running a review does not re-query Europe PMC / Unpaywall for links it
-already has. \code{medrev_cache_path()} returns the cache file location;
-\code{medrev_cache_clear()} deletes it.
+already has. \code{medrevcachepath()} returns the cache file location;
+\code{medrevcacheclear()} deletes it.
 }
 \details{
 The location is \code{getOption("medrev.cache_dir")} or, by default,
 \code{tools::R_user_dir("medrev", "cache")}.
 }
 \examples{
-medrev_cache_path()
+medrevcachepath()
 }

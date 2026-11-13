@@ -11,12 +11,12 @@
 #' * `"europepmc"` - the Europe PMC full-text PDF for open-access PMC articles
 #'   (no network call - the URL is constructed).
 #' * `"unpaywall"` - the best open-access PDF Unpaywall knows for the DOI.
-#'   Requires a contact e-mail (see [medrev_email()]). Queried for all
+#'   Requires a contact e-mail (see [medrevemail()]). Queried for all
 #'   candidates at once, `max_active` requests in flight.
 #' * `"citation_meta"` - the `citation_pdf_url` tag on the landing page, only
 #'   for records already known to be open access.
 #'
-#' Every link found is written to an on-disk cache (see [medrev_cache_path()]),
+#' Every link found is written to an on-disk cache (see [medrevcachepath()]),
 #' so re-running `resolve()` on an overlapping review is nearly free.
 #'
 #' @param x A `medrev` object.

@@ -40,7 +40,7 @@ test_that("the resolve cache round-trips, upserts, and clears", {
   medrev:::mr_cache_save(data.frame(key = "doi:x", pdf_url = "u2",
     pdf_source = "unpaywall", oa_status = "oa", stringsAsFactors = FALSE))
   expect_equal(medrev:::mr_cache_load()$pdf_url, "u2")     # upsert, not append
-  expect_true(medrev_cache_clear())
+  expect_true(medrevcacheclear())
   expect_equal(nrow(medrev:::mr_cache_load()), 0L)
 })
 

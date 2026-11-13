@@ -1,4 +1,4 @@
-# review_brief(): assemble a Markdown evidence brief -----------------
+# reviewbrief(): assemble a Markdown evidence brief -----------------
 
 #' Assemble a rapid evidence brief
 #'
@@ -22,10 +22,10 @@
 #' r   <- pubmed("sepsis prognosis machine learning", n = 30) |> dedup()
 #' ins <- summarize(chunk(r), llm = my_model)
 #' syn <- synthesize(ins, llm = my_model)
-#' review_brief(r, insights = c(ins, syn), title = "Sepsis prognosis: rapid brief",
+#' reviewbrief(r, insights = c(ins, syn), title = "Sepsis prognosis: rapid brief",
 #'              file = "brief.md")
 #' }
-review_brief <- function(x, insights = NULL, title = "Rapid evidence brief",
+reviewbrief <- function(x, insights = NULL, title = "Rapid evidence brief",
                          file = NULL) {
   mr_assert(x)
   mr_check_string(title, "title")

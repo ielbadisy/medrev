@@ -12,9 +12,9 @@
 #'
 #' @examples
 #' \dontrun{
-#' year_counts(pubmed("crispr screening", n = 200))
+#' yearcounts(pubmed("crispr screening", n = 200))
 #' }
-year_counts <- function(x, cumulative = FALSE, which = c("all", "included")) {
+yearcounts <- function(x, cumulative = FALSE, which = c("all", "included")) {
   mr_assert(x)
   which <- match.arg(which)
   df <- mr_df(x)
@@ -22,12 +22,12 @@ year_counts <- function(x, cumulative = FALSE, which = c("all", "included")) {
   yr <- suppressWarnings(as.integer(df$year))
   yr <- yr[!is.na(yr)]
   if (!length(yr)) {
-    return(basetable::as_basetable(data.frame(year = integer(), n = integer())))
+    return(basetable::asbasetable(data.frame(year = integer(), n = integer())))
   }
   rng <- seq.int(min(yr), max(yr))
   tab <- tabulate(match(yr, rng), nbins = length(rng))
   if (cumulative) tab <- cumsum(tab)
-  basetable::as_basetable(data.frame(year = rng, n = as.integer(tab)))
+  basetable::asbasetable(data.frame(year = rng, n = as.integer(tab)))
 }
 
 #' Keyword or MeSH term frequencies
@@ -45,9 +45,9 @@ year_counts <- function(x, cumulative = FALSE, which = c("all", "included")) {
 #'
 #' @examples
 #' \dontrun{
-#' term_counts(pubmed("sepsis biomarkers", n = 200), "mesh", top = 20)
+#' termcounts(pubmed("sepsis biomarkers", n = 200), "mesh", top = 20)
 #' }
-term_counts <- function(x, field = c("keywords", "mesh"), min_n = 1L,
+termcounts <- function(x, field = c("keywords", "mesh"), min_n = 1L,
                         top = NULL, which = c("all", "included")) {
   mr_assert(x)
   field <- match.arg(field)
@@ -59,12 +59,12 @@ term_counts <- function(x, field = c("keywords", "mesh"), min_n = 1L,
   terms <- trimws(unlist(strsplit(vals, "\\s*;\\s*")))
   terms <- terms[nzchar(terms)]
   if (!length(terms)) {
-    return(basetable::as_basetable(data.frame(term = character(), n = integer())))
+    return(basetable::asbasetable(data.frame(term = character(), n = integer())))
   }
   tt <- sort(table(terms), decreasing = TRUE)
   out <- data.frame(term = names(tt), n = as.integer(tt), stringsAsFactors = FALSE)
   out <- out[out$n >= min_n, , drop = FALSE]
   if (!is.null(top)) out <- utils::head(out, mr_check_count(top, "top"))
   rownames(out) <- NULL
-  basetable::as_basetable(out)
+  basetable::asbasetable(out)
 }

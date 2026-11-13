@@ -134,11 +134,11 @@ mr_fuzzy_nearest <- function(one, pool) {
 #' @export
 #'
 #' @examples
-#' fuzzy_match(
+#' fuzzymatch(
 #'   "Interpretable machine learning for cancer prognosis",
 #'   c("Interpretable ML for cancer prognosis", "An unrelated title")
 #' )
-fuzzy_match <- function(x, choices, cutoff = 0.1) {
+fuzzymatch <- function(x, choices, cutoff = 0.1) {
   mr_check_string(x, "x")
   a <- mr_norm_title(x)
   b <- mr_norm_title(choices)

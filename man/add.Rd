@@ -25,12 +25,12 @@ add(
 Runs a further query (or identifier lookup) and merges the new records into
 \code{x}. Records whose \code{id} is already present are not added again; run
 \code{\link[=dedup]{dedup()}} afterwards for title-level de-duplication across the combined set.
-Each call is appended to the review's search log (see \code{\link[=search_log]{search_log()}}).
+Each call is appended to the review's search log (see \code{\link[=searchlog]{searchlog()}}).
 }
 \examples{
 \dontrun{
 r <- pubmed("sepsis prognosis machine learning", n = 100)
 r <- add(r, "sepsis mortality prediction deep learning", n = 100)
-search_log(r)
+searchlog(r)
 }
 }

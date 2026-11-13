@@ -133,7 +133,7 @@ mr_download_log <- function(log) {
       stringsAsFactors = FALSE
     )
   }
-  basetable::as_basetable(log[, cols, drop = FALSE])
+  basetable::asbasetable(log[, cols, drop = FALSE])
 }
 
 # Download one PDF to `file`. TRUE on success.

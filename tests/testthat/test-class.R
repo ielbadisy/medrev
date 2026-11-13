@@ -1,7 +1,7 @@
 test_that("new_medrev builds the schema and a basetable record slot", {
   r <- fake_review()
   expect_s3_class(r, "medrev")
-  expect_true(medrev::is_medrev(r))
+  expect_true(medrev::ismedrev(r))
   expect_s3_class(r$records, "basetable")
   expect_equal(names(as.data.frame(r)), medrev:::.mr_cols)
 })

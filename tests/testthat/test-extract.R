@@ -126,9 +126,9 @@ test_that("an empty rows array is a valid (zero-row) extraction", {
 
 test_that("extract() validates fields and prompt placeholders", {
   ch <- chunk(chunkable_review(), size = 120, overlap = 10, which = "all")
-  expect_error(extract(ch, llm_echo, fields = c("no name")), "named character vector")
-  expect_error(extract(ch, llm_echo), "Supply a")
-  expect_error(extract(ch, llm_echo, fields = fields3, prompt = "only {evidence}"),
+  expect_error(extract(ch, llmecho, fields = c("no name")), "named character vector")
+  expect_error(extract(ch, llmecho), "Supply a")
+  expect_error(extract(ch, llmecho, fields = fields3, prompt = "only {evidence}"),
                "\\{schema\\}")
 })
 
@@ -136,7 +136,7 @@ test_that("extract() on empty chunks returns empty insights", {
   r <- chunkable_review()
   d <- medrev:::mr_df(r); d$abstract <- NA_character_
   ch <- chunk(medrev:::mr_set_df(r, d), which = "all")
-  expect_equal(nrow(as.data.frame(extract(ch, llm_echo, fields = fields3))), 0L)
+  expect_equal(nrow(as.data.frame(extract(ch, llmecho, fields = fields3))), 0L)
 })
 
 test_that("subsetting a form keeps it printable", {

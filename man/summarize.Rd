@@ -16,7 +16,7 @@ summarize(
 \item{chunks}{A \code{medrev_chunks} object from \code{\link[=chunk]{chunk()}}.}
 
 \item{llm}{A model callback: \verb{function(prompt, ...)} returning a string. Use
-\code{\link[=llm_echo]{llm_echo()}} to try the plumbing without a real model.}
+\code{\link[=llmecho]{llmecho()}} to try the plumbing without a real model.}
 
 \item{prompt}{Optional prompt template; must contain the literal \code{{evidence}}
 placeholder, which is replaced with the joined chunk text.}

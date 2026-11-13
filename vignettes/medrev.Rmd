@@ -50,7 +50,7 @@ bioRxiv for very recent preprints with `preprints()` and merge with `c()`.
 r <- add(r, "sepsis mortality prediction deep learning", n = 200)
 pp <- preprints("sepsis machine learning prognosis", "medrxiv", from = "2025-01-01")
 r <- c(r, pp)
-search_log(r)
+searchlog(r)
 ```
 
 ## 3. De-duplicate
@@ -87,8 +87,8 @@ r <- screen(r, sheet = "screen.csv")
 ## 5. Describe the corpus
 
 ```{r}
-year_counts(r, which = "included")
-term_counts(r, "mesh", top = 20)
+yearcounts(r, which = "included")
+termcounts(r, "mesh", top = 20)
 ```
 
 ## 6. Resolve and download open-access PDFs
@@ -142,7 +142,7 @@ claude <- function(prompt, ...) {
 }
 ```
 
-`llm_echo()` is a deterministic stub if you just want to see the plumbing
+`llmecho()` is a deterministic stub if you just want to see the plumbing
 move.
 
 ```{r}
@@ -157,7 +157,7 @@ verify(sr, ch)                                   # quotes found in the text? num
 sm  <- summarize(ch, llm = claude)               # one grounded summary per study
 syn <- synthesize(c(sm, sr), llm = claude)       # cross-study synthesis
 
-review_brief(r, insights = c(sm, sr, syn),
+reviewbrief(r, insights = c(sm, sr, syn),
              title = "Interpretable ML for sepsis prognosis: rapid brief",
              file  = "brief.md")
 ```
